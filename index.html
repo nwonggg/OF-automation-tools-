@@ -361,6 +361,53 @@
   const previewFrames = [];
   let theme = "light";
 
+  // ---------- Hub-only tweaks to the Packing Slips tool ----------
+  // Applied only when the tool is opened inside this hub; its own link is untouched.
+  // Starts with no boxes (Clear All also resets to none) and uses a new contact example.
+  function customizePacking(frame){
+    try{
+      const w = frame.contentWindow, d = w.document;
+      if (!d || w.__hubPacking) return;
+      const container = d.getElementById("boxesContainer");
+      const addBtn = d.getElementById("addBoxBtn");
+      if (!container || typeof w.addBox !== "function" || typeof w.renumberBoxes !== "function") return;
+      w.__hubPacking = true;
+
+      const contact = d.getElementById("contact");
+      if (contact) contact.placeholder = "e.g. Jun Bai Zhen";
+
+      // "No boxes yet" note above the box list
+      const note = d.createElement("p");
+      note.textContent = "No boxes yet. Add a box or use Import from PDF.";
+      note.style.cssText = "margin:0 0 14px;font-size:14px;color:var(--ink-soft, #5b6763);";
+      container.parentNode.insertBefore(note, container);
+
+      // Keep the note, button label and Total Boxes in sync
+      const origRenumber = w.renumberBoxes;
+      w.renumberBoxes = function(){
+        origRenumber.apply(this, arguments);
+        const n = container.querySelectorAll(".box-card").length;
+        note.style.display = n ? "none" : "";
+        if (addBtn) addBtn.textContent = n ? "+ Add Another Box" : "+ Add Box";
+      };
+
+      // Clear All normally adds one empty box back; skip that inside the hub
+      let clearing = false;
+      const origAddBox = w.addBox;
+      w.addBox = function(prefill){
+        if (clearing && !prefill){ clearing = false; w.renumberBoxes(); return; }
+        return origAddBox.apply(this, arguments);
+      };
+      d.addEventListener("click", e => { if (e.target.closest && e.target.closest("#clearAllBtn")) clearing = true; }, true);
+      d.addEventListener("click", () => { clearing = false; });
+
+      // Start empty, unless someone already put items in
+      const hasItems = [...container.querySelectorAll(".i-part, .i-desc, .i-qty")].some(el => el.value.trim());
+      if (!hasItems){ container.innerHTML = ""; w.boxCounter = 0; }
+      w.renumberBoxes();
+    }catch(e){}
+  }
+
   // ---------- Theme (also flips every embedded tool that supports it) ----------
   function applyThemeTo(frame){
     try{
@@ -410,7 +457,7 @@
       </div>`;
     const f = a.querySelector("iframe");
     f.src = t.url;
-    f.addEventListener("load", () => applyThemeTo(f));
+    f.addEventListener("load", () => { if (t.id === "packing") customizePacking(f); applyThemeTo(f); });
     previewFrames.push(f);
     wrap.appendChild(a);
     tiles.appendChild(wrap);
@@ -473,7 +520,7 @@
       f.title = tool.name;
       f.dataset.id = tool.id;
       f.setAttribute("allow", "clipboard-read; clipboard-write");
-      f.addEventListener("load", () => applyThemeTo(f));
+      f.addEventListener("load", () => { if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
       frames.appendChild(f);
       toolFrames[tool.id] = f;
     }
