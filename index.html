@@ -361,6 +361,28 @@
   const previewFrames = [];
   let theme = "light";
 
+  // ---------- Hide each tool's own header bits inside the hub ----------
+  // The hub's banner already has the green bar, TWIST wordmark and toggle, so the
+  // tools' copies are hidden here. Opened on their own links, the tools still show them.
+  const EMBED_CSS = [
+    "#themeToggle",                    // every tool's own light/dark toggle
+    "body > .topbar:empty",            // ADC (and restyled packing slip): green bar
+    ".brand:not(:has(h1))",            // ADC (and restyled packing slip): wordmark
+    ".brandbar", ".logo",              // current packing slip: green bar and wordmark
+    ".top-stripe", ".brand-right"      // HTS Calculator: green bar, wordmark and toggle
+  ].join(",") + "{display:none !important;}";
+  function hideToolChrome(frame){
+    try{
+      const d = frame.contentWindow.document;
+      if (d && d.head && !d.getElementById("hub-embed-style")){
+        const st = d.createElement("style");
+        st.id = "hub-embed-style";
+        st.textContent = EMBED_CSS;
+        d.head.appendChild(st);
+      }
+    }catch(e){}
+  }
+
   // ---------- Hub-only tweaks to the Packing Slips tool ----------
   // Applied only when the tool is opened inside this hub; its own link is untouched.
   // Starts with no boxes (Clear All also resets to none) and uses a new contact example.
@@ -457,7 +479,7 @@
       </div>`;
     const f = a.querySelector("iframe");
     f.src = t.url;
-    f.addEventListener("load", () => { if (t.id === "packing") customizePacking(f); applyThemeTo(f); });
+    f.addEventListener("load", () => { hideToolChrome(f); if (t.id === "packing") customizePacking(f); applyThemeTo(f); });
     previewFrames.push(f);
     wrap.appendChild(a);
     tiles.appendChild(wrap);
@@ -520,7 +542,7 @@
       f.title = tool.name;
       f.dataset.id = tool.id;
       f.setAttribute("allow", "clipboard-read; clipboard-write");
-      f.addEventListener("load", () => { if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
+      f.addEventListener("load", () => { hideToolChrome(f); if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
       frames.appendChild(f);
       toolFrames[tool.id] = f;
     }
