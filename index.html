@@ -58,16 +58,33 @@
 
   /* ---------- Shared header ---------- */
   .topbar{
-    height:4px; width:100%; max-width:1080px; margin:0 auto;
-    border-radius:0 0 4px 4px; flex-shrink:0;
+    height:4px; width:100%; flex-shrink:0;
     background:linear-gradient(90deg, var(--accent-grad-a), var(--accent-grad-b));
   }
   .hub{flex-shrink:0;border-bottom:1px solid var(--line);padding:0 20px;}
+  /* Left corner: Home · Center: tool tabs · Right corner: brand + toggle */
   .hub-inner{
-    max-width:1080px; margin:0 auto; padding:16px 0 14px;
-    display:flex; align-items:center; justify-content:space-between;
-    gap:16px; flex-wrap:wrap;
+    padding:12px 0;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:16px;
   }
+  .left{justify-self:start;}
+  .right{justify-self:end;display:flex;align-items:center;gap:12px;}
+
+  .home-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:36px;padding:0;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    color:var(--ink-soft);text-decoration:none;
+    font-size:14px;font-weight:600;white-space:nowrap;
+    transition:var(--transition);
+  }
+  .home-btn svg{width:18px;height:18px;}
+  .home-btn:hover{color:var(--ink);background:var(--line-soft);}
+  .home-btn[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);border-color:transparent;}
+
   nav{
     display:flex; gap:4px; padding:4px;
     background:var(--panel); border:1px solid var(--line); border-radius:10px;
@@ -83,41 +100,98 @@
   nav a:hover{color:var(--ink);background:var(--line-soft);}
   nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);}
 
-  .right{display:flex;align-items:center;gap:14px;}
-  .newtab{font-size:13px;font-weight:600;color:var(--ink-soft);text-decoration:none;white-space:nowrap;}
+  .newtab{font-size:12px;font-weight:600;color:var(--ink-soft);text-decoration:none;white-space:nowrap;}
   .newtab:hover{color:var(--accent-strong);}
   .newtab[hidden]{display:none;}
 
-  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
-  .brand-word{font-weight:700;font-size:14px;letter-spacing:.32em;color:var(--ink);white-space:nowrap;}
-  .brand-dot{color:var(--accent);font-weight:700;}
-  .brand-sub{font-weight:700;font-size:14px;letter-spacing:.28em;color:var(--accent);white-space:nowrap;}
+  .brand{display:flex;align-items:center;gap:7px;text-decoration:none;}
+  .brand-word{font-weight:700;font-size:11px;letter-spacing:.32em;color:var(--ink);white-space:nowrap;}
+  .brand-dot{color:var(--accent);font-weight:700;font-size:11px;}
+  .brand-sub{font-weight:700;font-size:11px;letter-spacing:.28em;color:var(--accent);white-space:nowrap;}
 
   .theme-toggle{
-    width:64px;height:34px;border-radius:999px;
+    width:46px;height:24px;border-radius:999px;
     border:1px solid var(--line);background:var(--line-soft);
-    cursor:pointer;margin-left:4px;padding:3px;
+    cursor:pointer;padding:2px;
     display:flex;align-items:center;justify-content:flex-start;
     transition:var(--transition);
   }
   .theme-toggle.on{justify-content:flex-end;}
   .theme-toggle .knob{
-    width:26px;height:26px;border-radius:50%;
+    width:18px;height:18px;border-radius:50%;
     background:var(--accent);color:#fff;
     display:flex;align-items:center;justify-content:center;
-    font-size:13px;flex-shrink:0;
+    font-size:10px;flex-shrink:0;
   }
-  nav a:focus-visible,.newtab:focus-visible,.theme-toggle:focus-visible,.tile:focus-visible{
+  nav a:focus-visible,.home-btn:focus-visible,.newtab:focus-visible,.theme-toggle:focus-visible,.tile:focus-visible{
     outline:2px solid var(--accent);outline-offset:3px;
   }
 
   /* ---------- Home ---------- */
   main{flex:1;position:relative;}
-  #home{position:absolute;inset:0;overflow-y:auto;padding:0 20px 60px;}
+  #home{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;}
   #home[hidden]{display:none;}
-  .home-wrap{max-width:1080px;margin:0 auto;padding-top:28px;}
-  .home-wrap h1{font-size:30px;font-weight:800;margin:0 0 6px;letter-spacing:-.3px;}
-  .home-wrap > p{margin:0 0 28px;color:var(--ink-soft);font-size:14px;}
+
+  /* Hero stays pinned while the content sheet scrolls up over it */
+  .hero{
+    --p:0;
+    position:sticky;top:0;z-index:0;
+    height:min(64vh, 560px);min-height:300px;
+    display:flex;align-items:center;
+    padding:0 20px;overflow:hidden;
+    background:
+      radial-gradient(60% 80% at 85% 20%, color-mix(in srgb, var(--accent-grad-b) 22%, transparent), transparent 70%),
+      radial-gradient(50% 70% at 10% 90%, color-mix(in srgb, var(--accent-grad-a) 18%, transparent), transparent 70%),
+      var(--accent-soft);
+  }
+  .hero-inner{
+    max-width:1080px;margin:0 auto;width:100%;
+    transform:translateY(calc(var(--p) * -60px)) scale(calc(1 - var(--p) * .06));
+    opacity:calc(1 - var(--p) * 1.1);
+    transform-origin:left center;
+    will-change:transform, opacity;
+  }
+  .eyebrow{
+    display:inline-block;margin-bottom:14px;
+    font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--accent-strong);
+  }
+  .hero h1{
+    font-size:clamp(36px, 6.2vw, 68px);font-weight:800;line-height:1.02;
+    letter-spacing:-.02em;margin:0 0 14px;
+  }
+  .hero p{margin:0;max-width:520px;color:var(--ink-soft);font-size:16px;line-height:1.5;}
+  .scroll-hint{
+    margin-top:28px;display:inline-flex;align-items:center;gap:8px;
+    background:none;border:0;padding:0;cursor:pointer;
+    font:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);
+  }
+  .scroll-hint:hover{color:var(--accent-strong);}
+  .scroll-hint .arrow{display:inline-block;animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+
+  .sheet{
+    position:relative;z-index:2;
+    background:var(--bg);
+    border-top:1px solid var(--line);
+    border-radius:26px 26px 0 0;
+    box-shadow:0 -18px 40px -30px rgba(0,0,0,.28);
+    min-height:calc(100% - 60px);
+    padding:40px 20px 80px;
+  }
+  .home-wrap{max-width:1080px;margin:0 auto;}
+  .section-label{
+    margin:0 0 20px;font-size:12px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-faint);
+  }
+
+  /* Pop-in as things scroll into view */
+  .reveal{
+    opacity:0;transform:translateY(56px) scale(.97);
+    transition:opacity .7s ease, transform .8s cubic-bezier(.16,.84,.24,1);
+    transition-delay:var(--d, 0ms);
+  }
+  .reveal.in{opacity:1;transform:none;}
 
   .tiles{display:grid;grid-template-columns:repeat(3, 1fr);gap:22px;}
   .tile{
@@ -197,18 +271,25 @@
   .tool-frame.active{display:block;}
 
   @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    .hero-inner{transform:none !important;opacity:1 !important;}
+    .scroll-hint .arrow{animation:none;}
     .tile,.tile *{transition:none !important;}
     .tile:hover,.tile:focus-visible{transform:none;}
   }
   @media (max-width:900px){
     .tiles{grid-template-columns:1fr 1fr;}
   }
+  @media (max-width:760px){
+    /* Home + brand share the top row, tool tabs drop below */
+    .hub-inner{grid-template-columns:auto 1fr;}
+    .center{grid-column:1 / -1;grid-row:2;justify-self:center;max-width:100%;}
+    .newtab{display:none;}
+  }
   @media (max-width:640px){
     .tiles{grid-template-columns:1fr;}
-    .hub-inner{flex-direction:column-reverse;align-items:stretch;}
-    .right{justify-content:space-between;}
-    .brand-word,.brand-sub{font-size:12px;}
-    .home-wrap h1{font-size:24px;}
+    .hero{height:52vh;}
+    .sheet{border-radius:20px 20px 0 0;padding-top:28px;}
   }
 </style>
 </head>
@@ -216,29 +297,43 @@
 <div class="topbar"></div>
 <div class="hub">
   <div class="hub-inner">
-    <nav id="tabs" aria-label="Tools"></nav>
+    <div class="left">
+      <a class="home-btn" id="homeBtn" href="#" aria-label="Home" title="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>
+        </svg>
+      </a>
+    </div>
+    <nav class="center" id="tabs" aria-label="Tools"></nav>
     <div class="right">
       <a class="newtab" id="newtab" target="_blank" rel="noopener" hidden>Open in new tab ↗</a>
-      <div class="brand">
-        <a href="#" style="display:flex;gap:10px;text-decoration:none" aria-label="Home">
-          <span class="brand-word">T W I S T</span>
-          <span class="brand-dot">·</span>
-          <span class="brand-sub">BIOSCIENCE</span>
-        </a>
-        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light or dark mode">
-          <span class="knob" id="themeIcon">☀</span>
-        </button>
-      </div>
+      <a class="brand" href="#" aria-label="Twist Bioscience — Home">
+        <span class="brand-word">T W I S T</span>
+        <span class="brand-dot">·</span>
+        <span class="brand-sub">BIOSCIENCE</span>
+      </a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light or dark mode">
+        <span class="knob" id="themeIcon">☀</span>
+      </button>
     </div>
   </div>
 </div>
 
 <main id="frames">
   <section id="home">
-    <div class="home-wrap">
-      <h1>Order Fulfillment Tools</h1>
-      <p>Pick a tool to get started. Your work in each one stays put while you switch between them.</p>
-      <div class="tiles" id="tiles"></div>
+    <header class="hero" id="hero">
+      <div class="hero-inner">
+        <span class="eyebrow">Twist Bioscience · Shipping</span>
+        <h1>Order Fulfillment<br>Tools</h1>
+        <p>Pick a tool to get started. Your work in each one stays put while you switch between them.</p>
+        <button class="scroll-hint" id="scrollHint" type="button">Browse tools <span class="arrow">↓</span></button>
+      </div>
+    </header>
+    <div class="sheet">
+      <div class="home-wrap">
+        <h2 class="section-label reveal">All tools</h2>
+        <div class="tiles" id="tiles"></div>
+      </div>
     </div>
   </section>
 </main>
@@ -255,6 +350,7 @@
   ];
 
   const tabs = document.getElementById("tabs");
+  const homeBtn = document.getElementById("homeBtn");
   const frames = document.getElementById("frames");
   const home = document.getElementById("home");
   const tiles = document.getElementById("tiles");
@@ -269,18 +365,8 @@
   function applyThemeTo(frame){
     try{
       const w = frame.contentWindow;
-      const d = w.document;
-      // Hide the tool's own toggle while it's inside the hub; the hub's
-      // toggle controls everything. Opened on its own, the tool keeps it.
-      if (d && !d.getElementById("hub-hide-toggle")){
-        const st = d.createElement("style");
-        st.id = "hub-hide-toggle";
-        st.textContent = "#themeToggle{display:none !important;}";
-        d.head.appendChild(st);
-      }
       if (typeof w.setTheme === "function") w.setTheme(theme);
-      else if (typeof w.applyTheme === "function") w.applyTheme(theme);
-      else if (d) d.documentElement.setAttribute("data-theme", theme);
+      else if (w.document) w.document.documentElement.setAttribute("data-theme", theme);
     }catch(e){}
   }
   function allFrames(){ return [...Object.values(toolFrames), ...previewFrames]; }
@@ -295,17 +381,20 @@
   const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   setTheme(prefersDark ? "dark" : "light");
 
-  // ---------- Tabs ----------
-  [{ id: "home", name: "Home" }, ...TOOLS].forEach(t => {
+  // ---------- Tool tabs (center) ----------
+  TOOLS.forEach(t => {
     const a = document.createElement("a");
-    a.href = t.id === "home" ? "#" : "#" + t.id;
+    a.href = "#" + t.id;
     a.textContent = t.name;
     a.dataset.id = t.id;
     tabs.appendChild(a);
   });
 
   // ---------- Home tiles with live previews ----------
-  TOOLS.forEach(t => {
+  TOOLS.forEach((t, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "reveal";
+    wrap.style.setProperty("--d", (i * 110) + "ms");
     const a = document.createElement("a");
     a.className = "tile";
     a.href = "#" + t.id;
@@ -323,8 +412,33 @@
     f.src = t.url;
     f.addEventListener("load", () => applyThemeTo(f));
     previewFrames.push(f);
-    tiles.appendChild(a);
+    wrap.appendChild(a);
+    tiles.appendChild(wrap);
   });
+
+  // ---------- Scroll effects on the home screen ----------
+  const hero = document.getElementById("hero");
+  let ticking = false;
+  home.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const p = Math.min(1, home.scrollTop / (hero.offsetHeight * 0.9));
+      hero.style.setProperty("--p", p.toFixed(3));
+      ticking = false;
+    });
+  }, { passive: true });
+
+  document.getElementById("scrollHint").addEventListener("click", () => {
+    home.scrollTo({ top: hero.offsetHeight - 40, behavior: "smooth" });
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, { root: home, threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 
   // Scale each 1280px-wide preview to fit its tile.
   const ro = new ResizeObserver(entries => {
@@ -337,9 +451,11 @@
     const tool = TOOLS.find(t => t.id === id);
 
     tabs.querySelectorAll("a").forEach(a => {
-      if (a.dataset.id === (tool ? tool.id : "home")) a.setAttribute("aria-current", "page");
+      if (tool && a.dataset.id === tool.id) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
     });
+    if (tool) homeBtn.removeAttribute("aria-current");
+    else homeBtn.setAttribute("aria-current", "page");
 
     if (!tool){
       home.hidden = false;
