@@ -371,13 +371,44 @@
     ".brandbar", ".logo",              // current packing slip: green bar and wordmark
     ".top-stripe", ".brand-right"      // HTS Calculator: green bar, wordmark and toggle
   ].join(",") + "{display:none !important;}";
-  function hideToolChrome(frame){
+  // The current Packing Slips page has no dark mode of its own, so the hub supplies one.
+  // It only switches on when the hub sets data-theme="dark" on the tool's page.
+  const D = 'html[data-theme="dark"]';
+  const PACKING_DARK_CSS = `
+    ${D}{
+      --teal:#2ad39b; --teal-dark:#2ad39b; --ink:#e0e5eb; --ink-soft:#98a8b3;
+      --paper:#1a232a; --mist:#0f0f10; --line:#354652; --gray-head:#2a3841;
+      color-scheme:dark;
+    }
+    ${D} body{background:var(--mist);color:var(--ink);}
+    ${D} header .title p, ${D} label, ${D} .hint{color:var(--ink-soft);}
+    ${D} input[type=text], ${D} input[type=date], ${D} input[type=number],
+    ${D} textarea, ${D} select{background:#131b20;color:var(--ink);border-color:var(--line);}
+    ${D} ::placeholder{color:#6d7d88;}
+    ${D} .box-card{background:#151d23;}
+    ${D} table.items th{color:#c9d3da;}
+    ${D} table.items input{background:transparent;border-color:transparent;}
+    ${D} table.items input:focus{border-color:var(--teal);}
+    ${D} table.items td.drag-handle{color:#6d7d88;}
+    ${D} .btn{background:#1a232a;color:var(--ink);border-color:var(--line);}
+    ${D} .btn:hover{border-color:var(--teal);color:var(--teal);}
+    ${D} .btn.primary{background:#19805e;border-color:#19805e;color:#fff;}
+    ${D} .btn.primary:hover{background:#04a973;border-color:#04a973;color:#fff;}
+    ${D} .btn.danger, ${D} .rm-row, ${D} .box-card-head .rm-box{color:#f07a73;}
+    ${D} .btn.danger{border-color:#5a3433;}
+    ${D} .btn.danger:hover{background:#b3312c;border-color:#b3312c;color:#fff;}
+    ${D} .box-card.drag-target{box-shadow:0 0 0 2px rgba(42,211,155,.25);}
+  `;
+  function hideToolChrome(frame, toolId){
     try{
       const d = frame.contentWindow.document;
       if (d && d.head && !d.getElementById("hub-embed-style")){
         const st = d.createElement("style");
         st.id = "hub-embed-style";
-        st.textContent = EMBED_CSS;
+        // Only add the dark theme to the current packing slip page (it has no
+        // #themeToggle). The restyled version brings its own dark mode.
+        const needsDark = toolId === "packing" && !d.getElementById("themeToggle");
+        st.textContent = EMBED_CSS + (needsDark ? PACKING_DARK_CSS : "");
         d.head.appendChild(st);
       }
     }catch(e){}
@@ -479,7 +510,7 @@
       </div>`;
     const f = a.querySelector("iframe");
     f.src = t.url;
-    f.addEventListener("load", () => { hideToolChrome(f); if (t.id === "packing") customizePacking(f); applyThemeTo(f); });
+    f.addEventListener("load", () => { hideToolChrome(f, t.id); if (t.id === "packing") customizePacking(f); applyThemeTo(f); });
     previewFrames.push(f);
     wrap.appendChild(a);
     tiles.appendChild(wrap);
@@ -542,7 +573,7 @@
       f.title = tool.name;
       f.dataset.id = tool.id;
       f.setAttribute("allow", "clipboard-read; clipboard-write");
-      f.addEventListener("load", () => { hideToolChrome(f); if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
+      f.addEventListener("load", () => { hideToolChrome(f, tool.id); if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
       frames.appendChild(f);
       toolFrames[tool.id] = f;
     }
