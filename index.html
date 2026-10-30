@@ -346,7 +346,9 @@
     { id: "adc-coo", name: "ADC & COO",      url: "https://nwonggg.github.io/adc-coo-ci/",
       blurb: "Pick list in, ADC Excel out. Packing slips in, Certificate of Origin out." },
     { id: "hts",     name: "HTS Calculator", url: "https://nwonggg.github.io/HTS-Calculator/",
-      blurb: "Upload commercial invoices, match line items to HS codes, and get totals per code." }
+      blurb: "Upload commercial invoices, match line items to HS codes, and get totals per code." },
+    { id: "docs",    name: "Scan & Print",   url: "./shipping-docs.html",
+      blurb: "Scan a packing slip QR to open its GTS invoice and packing slip in SAP." }
   ];
 
   const tabs = document.getElementById("tabs");
@@ -368,7 +370,7 @@
     "#themeToggle",                    // every tool's own light/dark toggle
     "body > .topbar:empty",            // ADC (and restyled packing slip): green bar
     ".brand:not(:has(h1))",            // ADC (and restyled packing slip): wordmark
-    ".brandbar", ".logo",              // current packing slip: green bar and wordmark
+    ".brandbar", ".logo",              // current packing slip and Scan & Print: green bar and logo
     ".top-stripe", ".brand-right"      // HTS Calculator: green bar, wordmark and toggle
   ].join(",") + "{display:none !important;}";
   // The current Packing Slips page has no dark mode of its own, so the hub supplies one.
@@ -582,6 +584,17 @@
     newtab.hidden = false;
     newtab.href = tool.url;
     document.title = tool.name + " — Twist Bioscience";
+
+    // Scan & Print: put the cursor in the scan box so the scanner works right away
+    const active = toolFrames[tool.id];
+    const focusScan = () => {
+      try{
+        const el = active.contentWindow.document.getElementById("delivery");
+        if (el){ active.contentWindow.focus(); el.focus(); }
+      }catch(e){}
+    };
+    focusScan();
+    active.addEventListener("load", focusScan, { once: true });
   }
 
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));
