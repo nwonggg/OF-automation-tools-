@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twist Bioscience — Scan &amp; Print</title>
+<style>
+  :root{
+    --teal: #3F9F82;
+    --teal-dark: #2D7A63;
+    --ink: #1B1F1D;
+    --sub: #5b6763;
+    --paper: #FFFFFF;
+    --mist: #F4F7F6;
+    --line: #D8E0DE;
+    --field: #FFFFFF;
+    --danger: #b3312c;
+    --danger-soft: #fbeceb;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"]{
+    --teal: #4FB894;
+    --teal-dark: #6FCBA9;
+    --ink: #E7EEEB;
+    --sub: #9AA8A3;
+    --paper: #1C2422;
+    --mist: #121816;
+    --line: #2F3B38;
+    --field: #161D1B;
+    --danger: #E8807B;
+    --danger-soft: #3a2220;
+    color-scheme: dark;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--mist);
+    color: var(--ink);
+    padding: 32px 20px 80px;
+  }
+  .wrap{ max-width: 880px; margin: 0 auto; }
+  .brandbar{
+    height:6px;
+    background: linear-gradient(90deg, var(--teal), var(--teal-dark));
+    border-radius: 4px;
+    margin-bottom:18px;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 28px; flex-wrap: wrap; gap:12px;
+  }
+  header .title h1{ font-size: 20px; margin:0 0 2px; letter-spacing:0.2px; }
+  header .title p{ margin:0; font-size:13px; color:var(--sub); }
+  header .right{ display:flex; align-items:center; gap:18px; }
+  .logo{ height:40px; display:block; mix-blend-mode: multiply; }
+  :root[data-theme="dark"] .logo{ filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; }
+
+  .toggle{
+    display:inline-flex; align-items:center; gap:8px;
+    background:none; border:none; padding:0; cursor:pointer; color:var(--sub);
+    font: 600 12px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .toggle .track{
+    width:38px; height:22px; border-radius:11px; background:var(--line); position:relative; transition:background .2s;
+  }
+  .toggle .knob{
+    position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%;
+    background:#fff; transition:transform .2s; display:grid; place-items:center; font-size:10px; line-height:1;
+  }
+  :root[data-theme="dark"] .toggle .track{ background:var(--teal); }
+  :root[data-theme="dark"] .toggle .knob{ transform:translateX(16px); }
+  .toggle:focus-visible{ outline:2px solid var(--teal); outline-offset:3px; border-radius:12px; }
+
+  .card{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .card h2{
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--teal-dark); margin: 0 0 14px;
+  }
+  label.lbl{ display:block; font-size:12px; color:var(--sub); font-weight:600; margin-bottom:6px; }
+
+  .scan{ display:flex; gap:10px; }
+  #delivery{
+    flex:1; min-width:0;
+    font-family:inherit; font-size:30px; font-weight:600; letter-spacing:0.06em;
+    font-variant-numeric: tabular-nums;
+    border:1px solid var(--line); border-radius:6px; padding:10px 14px;
+    background:var(--field); color:var(--ink);
+  }
+  #delivery:focus{ outline: 2px solid var(--teal); outline-offset:1px; border-color:var(--teal); }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    font-size:13px; font-weight:600; padding:8px 14px; border-radius:6px;
+    border:1px solid var(--line); background:var(--field); color:var(--ink); cursor:pointer; font-family:inherit;
+  }
+  .btn:hover{ border-color: var(--teal); color: var(--teal-dark); }
+  .btn.primary{ background: var(--teal); border-color: var(--teal); color:#fff; font-size:15px; padding:0 22px; }
+  .btn.primary:hover{ background: var(--teal-dark); border-color: var(--teal-dark); color:#fff; }
+  .btn.small{ font-size:12px; padding:5px 10px; }
+  .btn:focus-visible{ outline: 2px solid var(--teal); outline-offset:2px; }
+
+  .docs{ display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:14px; }
+  .docs label{ display:flex; align-items:center; gap:7px; font-size:13.5px; cursor:pointer; }
+  .docs input{ width:16px; height:16px; accent-color: var(--teal); }
+  .docs .hint{ color:var(--sub); font-size:12px; }
+
+  #status{ font-size:13px; font-weight:600; margin:14px 0 0; min-height:1.4em; color:var(--teal-dark); }
+  #status.warn{ color:var(--danger); background:var(--danger-soft); padding:9px 12px; border-radius:6px; font-weight:500; }
+
+  table{ width:100%; border-collapse:collapse; }
+  th{
+    background: #A6A6A6; color:#fff; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.03em; padding:6px 8px; text-align:left; font-weight:700;
+  }
+  :root[data-theme="dark"] th{ background:#3a4744; }
+  td{ padding:8px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
+  td.num{ font-weight:600; font-variant-numeric: tabular-nums; }
+  td.time{ color:var(--sub); white-space:nowrap; }
+  td.acts{ text-align:right; }
+  td.acts .btn{ margin-left:6px; }
+  .empty{ color:var(--sub); font-size:13px; padding:12px 8px; }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .card-head h2{ margin:0; }
+  .linkbtn{ background:none; border:none; color:var(--danger); font:600 12px inherit; cursor:pointer; font-family:inherit; }
+
+  @media (max-width:560px){
+    .scan{ flex-direction:column; }
+    .btn.primary{ padding:12px; }
+    td.acts .btn{ margin:3px 0 0 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar"></div>
+  <header>
+    <div class="title">
+      <h1>Scan &amp; Print</h1>
+      <p>Scan a packing slip QR or type a delivery number to open its documents.</p>
+    </div>
+    <div class="right">
+      <img class="logo" src="data:image/png;base64,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" alt="Twist Bioscience">
+      <button class="toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+        <span class="track"><span class="knob" id="knob">☀︎</span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>Scan</h2>
+    <label class="lbl" for="delivery">Delivery number</label>
+    <div class="scan">
+      <input id="delivery" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="80542131">
+      <button class="btn primary" id="openBtn" type="button">Open docs</button>
+    </div>
+    <div class="docs">
+      <label><input type="checkbox" id="doc-gts" checked> GTS invoice</label>
+      <label><input type="checkbox" id="doc-pack" checked> Packing slip</label>
+      <label><input type="checkbox" id="doc-pick"> Pick list <span class="hint">(untested)</span></label>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>Recent</h2>
+      <button class="linkbtn" id="clearBtn" type="button">Clear list</button>
+    </div>
+    <table>
+      <thead><tr><th>Delivery #</th><th>Time</th><th style="text-align:right">Reopen</th></tr></thead>
+      <tbody id="recent"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const ECP = "https://vhtweecpci.sap.twistbioscience.com:44300/sap/opu/odata/sap/zotc_delivery_pdf_srv/PDFDocumentCollection";
+  const GTS = "https://sapgtsprd.twistbioscience.com:44300/sap/bc/gui/sap/its/webgui";
+  const DOCS = {
+    gts:  { name: "GTS invoice",  url: d => `${GTS}?~transaction=*zsd_comminv%20P_VBELN=${d};&~nosplash=1&sap-client=500&sap-language=EN` },
+    pack: { name: "Packing slip", url: d => `${ECP}(DocID='${d}',DocType='Pack')/$value` },
+    pick: { name: "Pick list",    url: d => `${ECP}(DocID='${d}',DocType='Pick')/$value` }
+  };
+
+  const $ = id => document.getElementById(id);
+  const input = $("delivery"), status = $("status"), recentEl = $("recent");
+  const store = {
+    get(k, f){ try{ const v = localStorage.getItem(k); return v === null ? f : JSON.parse(v); } catch { return f; } },
+    set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+
+  function applyTheme(t){
+    document.documentElement.dataset.theme = t;
+    $("knob").textContent = t === "dark" ? "☾" : "☀︎";
+    $("themeToggle").setAttribute("aria-pressed", t === "dark");
+  }
+  applyTheme(store.get("sd-theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  $("themeToggle").onclick = () => {
+    const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(t); store.set("sd-theme", t); input.focus();
+  };
+
+  const saved = store.get("sd-docs", null);
+  for (const k of Object.keys(DOCS)){
+    const box = $("doc-" + k);
+    if (saved && k in saved) box.checked = saved[k];
+    box.onchange = () => {
+      store.set("sd-docs", Object.fromEntries(Object.keys(DOCS).map(x => [x, $("doc-" + x).checked])));
+      input.focus();
+    };
+  }
+
+  function normalize(raw){
+    const digits = String(raw).replace(/\D/g, "").replace(/^0+/, "");
+    if (!digits || digits.length > 10) return null;
+    return digits.padStart(10, "0");
+  }
+  function show(msg, warn){ status.textContent = msg; status.className = warn ? "warn" : ""; }
+
+  function run(){
+    const d = normalize(input.value);
+    if (!d){ show("That isn't a delivery number. Scan the packing slip QR or type the 8 digits, like 80542131.", true); input.select(); return; }
+    const keys = Object.keys(DOCS).filter(k => $("doc-" + k).checked);
+    if (!keys.length){ show("Tick at least one document.", true); return; }
+    let blocked = 0;
+    for (const k of keys){ if (!window.open(DOCS[k].url(d), "_blank")) blocked++; }
+    const short = d.replace(/^0+/, "");
+    if (blocked) show(`Chrome blocked ${blocked} tab${blocked > 1 ? "s" : ""}. Click the blocked pop-up icon in the address bar, choose "Always allow", then scan again.`, true);
+    else show(`Opened ${keys.map(k => DOCS[k].name).join(" and ")} for ${short}.`);
+    addRecent(short);
+    input.value = "";
+    input.focus();
+  }
+
+  function addRecent(num){
+    const list = store.get("sd-recent", []).filter(r => r.num !== num);
+    list.unshift({ num, at: Date.now() });
+    store.set("sd-recent", list.slice(0, 15));
+    renderRecent();
+  }
+  function renderRecent(){
+    const list = store.get("sd-recent", []);
+    recentEl.innerHTML = "";
+    if (!list.length){ recentEl.innerHTML = '<tr><td colspan="3" class="empty">Scanned deliveries show up here so you can reopen a document.</td></tr>'; return; }
+    for (const r of list){
+      const t = new Date(r.at);
+      const today = t.toDateString() === new Date().toDateString();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="num">${r.num}</td><td class="time">${today ? t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : t.toLocaleDateString([], {month:"short", day:"numeric"})}</td><td class="acts"></td>`;
+      for (const k of Object.keys(DOCS)){
+        const b = document.createElement("button");
+        b.className = "btn small"; b.type = "button"; b.textContent = DOCS[k].name;
+        b.onclick = () => { window.open(DOCS[k].url(normalize(r.num)), "_blank"); input.focus(); };
+        tr.lastChild.appendChild(b);
+      }
+      recentEl.appendChild(tr);
+    }
+  }
+  $("clearBtn").onclick = () => { store.set("sd-recent", []); renderRecent(); input.focus(); };
+
+  input.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); run(); } });
+  $("openBtn").onclick = run;
+  renderRecent();
+  // Lets the tools hub switch this page's theme
+  window.setTheme = t => applyTheme(t === "dark" ? "dark" : "light");
+  // Inside the hub, the hub decides when to focus the box (so previews don't steal focus)
+  if (window.top === window.self) input.focus();
+</script>
+</body>
+</html>
