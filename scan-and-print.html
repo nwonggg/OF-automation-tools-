@@ -115,6 +115,15 @@
   #status{ font-size:13px; font-weight:600; margin:14px 0 0; min-height:1.4em; color:var(--teal-dark); }
   #status.warn{ color:var(--danger); background:var(--danger-soft); padding:9px 12px; border-radius:6px; font-weight:500; }
 
+  .order{ display:none; margin-top:14px; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--mist); }
+  .order.show{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 28px; }
+  .order .amt{ font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .order .amt small{ font-size:12px; font-weight:600; color:var(--sub); margin-left:4px; }
+  .order .meta{ font-size:13.5px; color:var(--sub); }
+  .order .meta b{ color:var(--ink); font-weight:600; }
+  .order.miss{ background:var(--danger-soft); border-color:transparent; }
+  .order.miss .meta{ color:var(--danger); }
+
   table{ width:100%; border-collapse:collapse; }
   th{
     background: #A6A6A6; color:#fff; font-size:11px; text-transform:uppercase;
@@ -123,6 +132,7 @@
   :root[data-theme="dark"] th{ background:#3a4744; }
   td{ padding:8px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
   td.num{ font-weight:600; font-variant-numeric: tabular-nums; }
+  td.amtc{ font-variant-numeric: tabular-nums; white-space:nowrap; }
   td.time{ color:var(--sub); white-space:nowrap; }
   td.acts{ text-align:right; }
   td.acts .btn{ margin-left:6px; }
@@ -165,8 +175,10 @@
       <label><input type="checkbox" id="doc-gts" checked> GTS invoice</label>
       <label><input type="checkbox" id="doc-pack" checked> Packing slip</label>
       <label><input type="checkbox" id="doc-pick"> Pick list</label>
+      <label><input type="checkbox" id="doc-dash"> Shipping dashboard</label>
     </div>
     <p id="status" role="status" aria-live="polite"></p>
+    <div class="order" id="order" aria-live="polite"></div>
   </div>
 
   <div class="card">
@@ -175,7 +187,7 @@
       <button class="linkbtn" id="clearBtn" type="button">Clear list</button>
     </div>
     <table>
-      <thead><tr><th>Delivery #</th><th>Time</th><th style="text-align:right">Reopen</th></tr></thead>
+      <thead><tr><th>Delivery #</th><th class="amth" hidden>Est. Amt. USD</th><th>Time</th><th style="text-align:right">Reopen</th></tr></thead>
       <tbody id="recent"></tbody>
     </table>
   </div>
@@ -184,10 +196,15 @@
 <script>
   const ECP = "https://vhtweecpci.sap.twistbioscience.com:44300/sap/opu/odata/sap/zotc_delivery_pdf_srv/PDFDocumentCollection";
   const GTS = "https://sapgtsprd.twistbioscience.com:44300/sap/bc/gui/sap/its/webgui";
+  const ECP_GUI = "https://vhtweecpci.sap.twistbioscience.com:44300/sap/bc/gui/sap/its/webgui";
+  // Selection-screen field for the delivery number. Leave "" to open the dashboard's selection screen;
+  // set it (e.g. "S_VBELN-LOW") to jump straight to the delivery.
+  const DASH_FIELD = "";
   const DOCS = {
     gts:  { name: "GTS invoice",  url: d => `${GTS}?~transaction=*zsd_comminv%20P_VBELN=${d};&~nosplash=1&sap-client=500&sap-language=EN` },
     pack: { name: "Packing slip", url: d => `${ECP}(DocID='${d}',DocType='Pack')/$value` },
-    pick: { name: "Pick list",    url: d => `${ECP}(DocID='${d}',DocType='Pick')/$value` }
+    pick: { name: "Pick list",    url: d => `${ECP}(DocID='${d}',DocType='Pick')/$value` },
+    dash: { name: "Shipping dashboard", url: d => `${ECP_GUI}?~transaction=${DASH_FIELD ? `*ZSD_SHIPDASH%20${DASH_FIELD}=${d};` : "ZSD_SHIPDASH"}&~nosplash=1&sap-client=500&sap-language=EN` }
   };
 
   const $ = id => document.getElementById(id);
@@ -235,10 +252,40 @@
     const short = d.replace(/^0+/, "");
     if (blocked) show(`Chrome blocked ${blocked} tab${blocked > 1 ? "s" : ""}. Click the blocked pop-up icon in the address bar, choose "Always allow", then scan again.`, true);
     else show(`Opened ${keys.map(k => DOCS[k].name).join(" and ")} for ${short}.`);
+    showOrder(short);
     addRecent(short);
     input.value = "";
     input.focus();
   }
+
+  // ---- Est. Amt. USD from the Shipping Dashboard ----
+  // Filled in by the "Scan & Print: dashboard amounts" Tampermonkey script, which reads
+  // ZSD_SHIPDASH lists as they're viewed in SAP. Without the script, this stays off.
+  const orderEl = $("order");
+  let orders = null;
+  function money(n){ return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function orderFor(num){ return orders && orders[String(num).replace(/^0+/, "")] || null; }
+  const esc = x => String(x == null ? "" : x).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+  function showOrder(num){
+    if (!orders){ orderEl.className = "order"; orderEl.innerHTML = ""; return; }
+    const o = orderFor(num);
+    if (!o){
+      orderEl.className = "order show miss";
+      orderEl.innerHTML = `<span class="meta">No amount for ${esc(num)} yet. Open or refresh a Shipping Dashboard list that includes it.</span>`;
+      return;
+    }
+    orderEl.className = "order show";
+    orderEl.innerHTML = `<span class="amt">${money(o.amt)}<small>Est. USD</small></span>
+      ${o.ship ? `<span class="meta"><b>${esc(o.ship)}</b>${o.country ? " (" + esc(o.country) + ")" : ""}</span>` : ""}
+      ${o.q ? `<span class="meta">${esc(o.q)}</span>` : ""}`;
+  }
+  window.addEventListener("message", e => {
+    if (e.source !== window || !e.data || e.data.type !== "sd-orders-data") return;
+    orders = e.data.rows || {};
+    document.querySelector(".amth").hidden = false;
+    renderRecent();
+  });
+  window.postMessage({ type: "sd-orders-request" }, "*");
 
   function addRecent(num){
     const list = store.get("sd-recent", []).filter(r => r.num !== num);
@@ -249,12 +296,12 @@
   function renderRecent(){
     const list = store.get("sd-recent", []);
     recentEl.innerHTML = "";
-    if (!list.length){ recentEl.innerHTML = '<tr><td colspan="3" class="empty">Scanned deliveries show up here so you can reopen a document.</td></tr>'; return; }
+    if (!list.length){ recentEl.innerHTML = '<tr><td colspan="${orders ? 4 : 3}" class="empty">Scanned deliveries show up here so you can reopen a document.</td></tr>'; return; }
     for (const r of list){
       const t = new Date(r.at);
       const today = t.toDateString() === new Date().toDateString();
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td class="num">${r.num}</td><td class="time">${today ? t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : t.toLocaleDateString([], {month:"short", day:"numeric"})}</td><td class="acts"></td>`;
+      tr.innerHTML = `<td class="num">${r.num}</td>${orders ? `<td class="amtc">${orderFor(r.num) ? money(orderFor(r.num).amt) : "–"}</td>` : ""}<td class="time">${today ? t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : t.toLocaleDateString([], {month:"short", day:"numeric"})}</td><td class="acts"></td>`;
       for (const k of Object.keys(DOCS)){
         const b = document.createElement("button");
         b.className = "btn small"; b.type = "button"; b.textContent = DOCS[k].name;
