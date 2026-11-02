@@ -110,13 +110,20 @@
   .docs{ display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:14px; }
   .docs label{ display:flex; align-items:center; gap:7px; font-size:13.5px; cursor:pointer; }
   .docs input{ width:16px; height:16px; accent-color: var(--teal); }
+  .docs.auto{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
   .docs .hint{ color:var(--sub); font-size:12px; }
 
   #status{ font-size:13px; font-weight:600; margin:14px 0 0; min-height:1.4em; color:var(--teal-dark); }
   #status.warn{ color:var(--danger); background:var(--danger-soft); padding:9px 12px; border-radius:6px; font-weight:500; }
 
-  .order{ display:none; margin-top:14px; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--mist); }
-  .order.show{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 28px; }
+  .queue{ margin-top:14px; }
+  .queue[hidden]{ display:none; }
+  .queue-head{ display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:600; color:var(--sub); margin-bottom:8px; }
+  .order{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 28px; padding:12px 16px; border:1px solid var(--line); border-radius:8px; background:var(--mist); margin-top:8px; }
+  .order .dnum{ font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; min-width:92px; }
+  .order .rm{ margin-left:auto; align-self:center; background:none; border:none; color:var(--sub); font:600 12px inherit; font-family:inherit; cursor:pointer; padding:4px 6px; border-radius:4px; }
+  .order .rm:hover{ color:var(--danger); }
+  .order .rm:focus-visible{ outline:2px solid var(--teal); }
   .order .amt{ font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
   .order .amt small{ font-size:12px; font-weight:600; color:var(--sub); margin-left:4px; }
   .order .meta{ font-size:13.5px; color:var(--sub); }
@@ -154,7 +161,7 @@
   <header>
     <div class="title">
       <h1>Scan &amp; Print</h1>
-      <p>Scan a packing slip QR or type a delivery number to open its documents.</p>
+      <p>Scan one or more packing slip QRs (or type delivery numbers), then click Open docs.</p>
     </div>
     <div class="right">
       <img class="logo" src="data:image/png;base64,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" alt="Twist Bioscience">
@@ -177,8 +184,14 @@
       <label><input type="checkbox" id="doc-pick"> Pick list</label>
       <label><input type="checkbox" id="doc-dash"> Shipping dashboard</label>
     </div>
+    <div class="docs auto">
+      <label><input type="checkbox" id="autoOpen"> Open docs automatically when scanned</label>
+    </div>
     <p id="status" role="status" aria-live="polite"></p>
-    <div class="order" id="order" aria-live="polite"></div>
+    <div class="queue" id="queue" hidden>
+      <div class="queue-head"><span id="queueCount"></span><button class="linkbtn" id="queueClear" type="button">Clear</button></div>
+      <div id="queueList" aria-live="polite"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -242,18 +255,28 @@
   }
   function show(msg, warn){ status.textContent = msg; status.className = warn ? "warn" : ""; }
 
+  // ---- Batch: scanned deliveries waiting for "Open docs" ----
+  let queue = store.get("sd-queue", []);
+  const saveQueue = () => { store.set("sd-queue", queue); renderQueue(); };
+
   function run(){
-    const d = normalize(input.value);
-    if (!d){ show("That isn't a delivery number. Scan the packing slip QR or type the 8 digits, like 80542131.", true); input.select(); return; }
+    const list = [...queue];
+    const typed = normalize(input.value);
+    if (input.value.trim() && !typed){ show("That isn't a delivery number. Scan the packing slip QR or type the 8 digits, like 80542131.", true); input.select(); return; }
+    if (typed){ const t = typed.replace(/^0+/, ""); if (!list.includes(t)) list.push(t); }
+    if (!list.length){ show("Scan a delivery first.", true); input.focus(); return; }
     const keys = Object.keys(DOCS).filter(k => $("doc-" + k).checked);
     if (!keys.length){ show("Tick at least one document.", true); return; }
     let blocked = 0;
-    for (const k of keys){ if (!window.open(DOCS[k].url(d), "_blank")) blocked++; }
-    const short = d.replace(/^0+/, "");
-    if (blocked) show(`Chrome blocked ${blocked} tab${blocked > 1 ? "s" : ""}. Click the blocked pop-up icon in the address bar, choose "Always allow", then scan again.`, true);
-    else show(`Opened ${keys.map(k => DOCS[k].name).join(" and ")} for ${short}.`);
-    showOrder(short);
-    addRecent(short);
+    for (const num of list){
+      for (const k of keys){ if (!window.open(DOCS[k].url(normalize(num)), "_blank")) blocked++; }
+    }
+    if (blocked) show(`Chrome blocked ${blocked} tab${blocked > 1 ? "s" : ""}. Click the blocked pop-up icon in the address bar, choose "Always allow", then click Open docs again.`, true);
+    else show(`Opened ${keys.map(k => DOCS[k].name).join(" and ")} for ${list.length === 1 ? list[0] : list.length + " deliveries"}.`);
+    if (!blocked){
+      for (const num of list) addRecent(num);
+      queue = []; saveQueue();
+    }
     input.value = "";
     input.focus();
   }
@@ -261,29 +284,36 @@
   // ---- Est. Amt. USD from the Shipping Dashboard ----
   // Filled in by the "Scan & Print: dashboard amounts" Tampermonkey script, which reads
   // ZSD_SHIPDASH lists as they're viewed in SAP. Without the script, this stays off.
-  const orderEl = $("order");
   let orders = null;
   function money(n){ return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   function orderFor(num){ return orders && orders[String(num).replace(/^0+/, "")] || null; }
   const esc = x => String(x == null ? "" : x).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
-  function showOrder(num){
-    if (!orders){ orderEl.className = "order"; orderEl.innerHTML = ""; return; }
-    const o = orderFor(num);
-    if (!o){
-      orderEl.className = "order show miss";
-      orderEl.innerHTML = `<span class="meta">No amount for ${esc(num)} yet. Open or refresh a Shipping Dashboard list that includes it.</span>`;
-      return;
+  function renderQueue(){
+    const box = $("queue"), listEl = $("queueList");
+    box.hidden = !queue.length;
+    $("queueCount").textContent = `Ready to open: ${queue.length} deliver${queue.length === 1 ? "y" : "ies"}`;
+    listEl.innerHTML = "";
+    for (const num of queue){
+      const o = orderFor(num);
+      const row = document.createElement("div");
+      row.className = "order" + (orders && !o ? " miss" : "");
+      row.innerHTML = `<span class="dnum">${esc(num)}</span>` + (
+        !orders ? "" :
+        !o ? `<span class="meta">No amount yet. Open or refresh a Shipping Dashboard list that includes it.</span>` :
+        `<span class="amt">${money(o.amt)}<small>Est. USD</small></span>
+         ${o.ship ? `<span class="meta"><b>${esc(o.ship)}</b>${o.country ? " (" + esc(o.country) + ")" : ""}</span>` : ""}
+         ${o.q ? `<span class="meta">${esc(o.q)}</span>` : ""}`
+      ) + `<button class="rm" type="button" aria-label="Remove ${esc(num)}">Remove</button>`;
+      row.querySelector(".rm").onclick = () => { queue = queue.filter(x => x !== num); saveQueue(); input.focus(); };
+      listEl.appendChild(row);
     }
-    orderEl.className = "order show";
-    orderEl.innerHTML = `<span class="amt">${money(o.amt)}<small>Est. USD</small></span>
-      ${o.ship ? `<span class="meta"><b>${esc(o.ship)}</b>${o.country ? " (" + esc(o.country) + ")" : ""}</span>` : ""}
-      ${o.q ? `<span class="meta">${esc(o.q)}</span>` : ""}`;
   }
+  $("queueClear").onclick = () => { queue = []; saveQueue(); show(""); input.focus(); };
   window.addEventListener("message", e => {
     if (e.source !== window || !e.data || e.data.type !== "sd-orders-data") return;
     orders = e.data.rows || {};
     document.querySelector(".amth").hidden = false;
-    renderRecent();
+    renderRecent(); renderQueue();
   });
   window.postMessage({ type: "sd-orders-request" }, "*");
 
@@ -313,9 +343,23 @@
   }
   $("clearBtn").onclick = () => { store.set("sd-recent", []); renderRecent(); input.focus(); };
 
-  input.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); run(); } });
+  // Scanning (or pressing Enter) only looks the delivery up; documents open when "Open docs" is clicked.
+  function preview(){
+    const d = normalize(input.value);
+    if (!d){ show("That isn't a delivery number. Scan the packing slip QR or type the 8 digits, like 80542131.", true); input.select(); return; }
+    const short = d.replace(/^0+/, "");
+    if (queue.includes(short)) show(`${short} is already in the list.`);
+    else { queue.push(short); saveQueue(); show(`Added ${short}. Scan the next one, or click Open docs.`); }
+    input.value = "";
+    input.focus();
+  }
+  const auto = $("autoOpen");
+  auto.checked = store.get("sd-autoopen", false);
+  auto.onchange = () => { store.set("sd-autoopen", auto.checked); input.focus(); };
+  input.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); auto.checked ? run() : preview(); } });
   $("openBtn").onclick = run;
   renderRecent();
+  renderQueue();
   // Lets the tools hub switch this page's theme
   window.setTheme = t => applyTheme(t === "dark" ? "dark" : "light");
   // Inside the hub, the hub decides when to focus the box (so previews don't steal focus)
