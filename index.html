@@ -375,6 +375,23 @@
     ".brandbar", ".logo",              // current packing slip and Scan & Print: green bar and logo
     ".top-stripe", ".brand-right"      // HTS Calculator: green bar, wordmark and toggle
   ].join(",") + "{display:none !important;}";
+  // ---------- One type scale for every tool inside the hub ----------
+  // The tools were built separately, so titles, labels and buttons came out in different
+  // sizes. Inside the hub they all get the same sizes (the Packing Slips / Scan & Print scale).
+  const TYPE_CSS = `
+    body{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif !important;}
+    h1{font-size:22px !important;font-weight:700 !important;letter-spacing:-0.1px !important;line-height:1.25 !important;}
+    h1 + p, h1 + .sub, .brand .sub, header .title p{font-size:14px !important;}
+    .card h2, .eyebrow, .section-label, details.settings summary{
+      font-size:13px !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase;}
+    .btn:not(.small):not(.iconbtn), .btn-primary, .btn-secondary, .btn-danger, .btn-submit, .addrow-btn{font-size:14px !important;font-weight:600 !important;}
+    label:not(:has(input[type=checkbox])):not(:has(input[type=radio])){font-size:12.5px !important;}
+    input[type=text]:not(#delivery), input[type=date], input[type=number], input:not([type]):not(#delivery),
+    textarea, select{font-size:14px !important;}
+    table input, table select{font-size:13px !important;}
+    th{font-size:11px !important;}
+  `;
+
   // The current Packing Slips page has no dark mode of its own, so the hub supplies one.
   // It only switches on when the hub sets data-theme="dark" on the tool's page.
   const D = 'html[data-theme="dark"]';
@@ -412,7 +429,7 @@
         // Only add the dark theme to the current packing slip page (it has no
         // #themeToggle). The restyled version brings its own dark mode.
         const needsDark = toolId === "packing" && !d.getElementById("themeToggle");
-        st.textContent = EMBED_CSS + (needsDark ? PACKING_DARK_CSS : "");
+        st.textContent = EMBED_CSS + TYPE_CSS + (needsDark ? PACKING_DARK_CSS : "");
         d.head.appendChild(st);
       }
     }catch(e){}
