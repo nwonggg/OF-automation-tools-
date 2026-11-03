@@ -392,6 +392,13 @@
     th{font-size:11px !important;}
   `;
 
+  // Line the page titles up at the same height in every tool (the other tools sit 32px down).
+  const SPACING_CSS = {
+    "adc-coo": `.wrap{padding-top:32px !important;}`,
+    "hts":     `.page{padding-top:32px !important;}`
+  };
+  const TITLE_GAP_CSS = `h1{margin-top:0 !important;margin-bottom:4px !important;}`;
+
   // The current Packing Slips page has no dark mode of its own, so the hub supplies one.
   // It only switches on when the hub sets data-theme="dark" on the tool's page.
   const D = 'html[data-theme="dark"]';
@@ -429,7 +436,7 @@
         // Only add the dark theme to the current packing slip page (it has no
         // #themeToggle). The restyled version brings its own dark mode.
         const needsDark = toolId === "packing" && !d.getElementById("themeToggle");
-        st.textContent = EMBED_CSS + TYPE_CSS + (needsDark ? PACKING_DARK_CSS : "");
+        st.textContent = EMBED_CSS + TYPE_CSS + TITLE_GAP_CSS + (SPACING_CSS[toolId] || "") + (needsDark ? PACKING_DARK_CSS : "");
         d.head.appendChild(st);
       }
     }catch(e){}
