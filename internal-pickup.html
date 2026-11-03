@@ -256,7 +256,7 @@
 <script>
   const ECP = "https://vhtweecpci.sap.twistbioscience.com:44300/sap/opu/odata/sap/zotc_delivery_pdf_srv/PDFDocumentCollection";
   const DEFAULTS = {
-    cc: "", acct: "", time: "11:30 AM", loc: "681 Gateway",
+    cc: "shipping@twistbioscience.com", acct: "", time: "11:30 AM", loc: "681 Gateway",
     subj: "Twist Pick Up {q}",
     body: "Hello {first},\n\nYour Twist internal order, {q}, will be ready for pick up {when} at {time} at {location}.\n\nPlease note that your order will be stored {storage}.\n\nBest regards,"
   };
@@ -282,6 +282,7 @@
 
   // ---- Settings ----
   let set = Object.assign({}, DEFAULTS, store.get("io-settings", {}));
+  if (!set.cc) set.cc = DEFAULTS.cc;
   const setMap = { setCc: "cc", setAcct: "acct", setTime: "time", setLoc: "loc", setSubj: "subj", setBody: "body" };
   function loadSettings(){ for (const [id, k] of Object.entries(setMap)) $(id).value = set[k]; }
   for (const [id, k] of Object.entries(setMap)) $(id).addEventListener("input", () => { set[k] = $(id).value; store.set("io-settings", set); });
