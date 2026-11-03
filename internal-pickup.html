@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twist Bioscience — Scan &amp; Print</title>
+<style>
+  :root{
+    --teal: #3F9F82;
+    --teal-dark: #2D7A63;
+    --ink: #1B1F1D;
+    --sub: #5b6763;
+    --paper: #FFFFFF;
+    --mist: #F4F7F6;
+    --line: #D8E0DE;
+    --field: #FFFFFF;
+    --danger: #b3312c;
+    --danger-soft: #fbeceb;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"]{
+    --teal: #4FB894;
+    --teal-dark: #6FCBA9;
+    --ink: #E7EEEB;
+    --sub: #9AA8A3;
+    --paper: #1C2422;
+    --mist: #121816;
+    --line: #2F3B38;
+    --field: #161D1B;
+    --danger: #E8807B;
+    --danger-soft: #3a2220;
+    color-scheme: dark;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--mist);
+    color: var(--ink);
+    padding: 32px 20px 80px;
+  }
+  .wrap{ max-width: 880px; margin: 0 auto; }
+  .brandbar{
+    height:6px;
+    background: linear-gradient(90deg, var(--teal), var(--teal-dark));
+    border-radius: 4px;
+    margin-bottom:18px;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 28px; flex-wrap: wrap; gap:12px;
+  }
+  header .title h1{ font-size: 20px; margin:0 0 2px; letter-spacing:0.2px; }
+  header .title p{ margin:0; font-size:13px; color:var(--sub); }
+  header .right{ display:flex; align-items:center; gap:18px; }
+  .logo{ height:40px; display:block; mix-blend-mode: multiply; }
+  :root[data-theme="dark"] .logo{ filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; }
+
+  .toggle{
+    display:inline-flex; align-items:center; gap:8px;
+    background:none; border:none; padding:0; cursor:pointer; color:var(--sub);
+    font: 600 12px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .toggle .track{
+    width:38px; height:22px; border-radius:11px; background:var(--line); position:relative; transition:background .2s;
+  }
+  .toggle .knob{
+    position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%;
+    background:#fff; transition:transform .2s; display:grid; place-items:center; font-size:10px; line-height:1;
+  }
+  :root[data-theme="dark"] .toggle .track{ background:var(--teal); }
+  :root[data-theme="dark"] .toggle .knob{ transform:translateX(16px); }
+  .toggle:focus-visible{ outline:2px solid var(--teal); outline-offset:3px; border-radius:12px; }
+
+  .card{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .card h2{
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--teal-dark); margin: 0 0 14px;
+  }
+  label.lbl{ display:block; font-size:12px; color:var(--sub); font-weight:600; margin-bottom:6px; }
+
+  .scan{ display:flex; gap:10px; }
+  #delivery{
+    flex:1; min-width:0;
+    font-family:inherit; font-size:22px; font-weight:500; letter-spacing:0.04em;
+    font-variant-numeric: tabular-nums;
+    border:1px solid var(--line); border-radius:6px; padding:10px 14px;
+    background:var(--field); color:var(--ink);
+  }
+  #delivery::placeholder{ color: var(--line); opacity:1; }
+  #delivery:focus{ outline: 2px solid var(--teal); outline-offset:1px; border-color:var(--teal); }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    font-size:13px; font-weight:600; padding:8px 14px; border-radius:6px;
+    border:1px solid var(--line); background:var(--field); color:var(--ink); cursor:pointer; font-family:inherit;
+  }
+  .btn:hover{ border-color: var(--teal); color: var(--teal-dark); }
+  .btn.primary{ background: var(--teal); border-color: var(--teal); color:#fff; font-size:15px; padding:0 22px; }
+  .btn.primary:hover{ background: var(--teal-dark); border-color: var(--teal-dark); color:#fff; }
+  .btn.small{ font-size:12px; padding:5px 10px; }
+  .btn:focus-visible{ outline: 2px solid var(--teal); outline-offset:2px; }
+
+  .docs{ display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:14px; }
+  .docs label{ display:flex; align-items:center; gap:7px; font-size:13.5px; cursor:pointer; }
+  .docs input{ width:16px; height:16px; accent-color: var(--teal); }
+  .docs.auto{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+  .docs .hint{ color:var(--sub); font-size:12px; }
+
+  #status{ font-size:13px; font-weight:600; margin:14px 0 0; min-height:1.4em; color:var(--teal-dark); }
+  #status.warn{ color:var(--danger); background:var(--danger-soft); padding:9px 12px; border-radius:6px; font-weight:500; }
+
+  .queue{ margin-top:14px; }
+  .queue[hidden]{ display:none; }
+  .queue-head{ display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:600; color:var(--sub); margin-bottom:8px; }
+  .order{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 28px; padding:12px 16px; border:1px solid var(--line); border-radius:8px; background:var(--mist); margin-top:8px; }
+  .order .dnum{ font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; min-width:92px; }
+  .order .rm{ margin-left:auto; align-self:center; background:none; border:none; color:var(--sub); font:600 12px inherit; font-family:inherit; cursor:pointer; padding:4px 6px; border-radius:4px; }
+  .order .rm:hover{ color:var(--danger); }
+  .order .rm:focus-visible{ outline:2px solid var(--teal); }
+  .order .amt{ font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .order .amt small{ font-size:12px; font-weight:600; color:var(--sub); margin-left:4px; }
+  .order .meta{ font-size:13.5px; color:var(--sub); }
+  .order .meta b{ color:var(--ink); font-weight:600; }
+  .order.miss{ background:var(--danger-soft); border-color:transparent; }
+  .order.miss .meta{ color:var(--danger); }
+
+  table{ width:100%; border-collapse:collapse; }
+  th{
+    background: #A6A6A6; color:#fff; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.03em; padding:6px 8px; text-align:left; font-weight:700;
+  }
+  :root[data-theme="dark"] th{ background:#3a4744; }
+  td{ padding:8px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
+  td.num{ font-weight:600; font-variant-numeric: tabular-nums; }
+  td.amtc{ font-variant-numeric: tabular-nums; white-space:nowrap; }
+  td.time{ color:var(--sub); white-space:nowrap; }
+  td.acts{ text-align:right; }
+  td.acts .btn{ margin-left:6px; }
+  .empty{ color:var(--sub); font-size:13px; padding:12px 8px; }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .card-head h2{ margin:0; }
+  .linkbtn{ background:none; border:none; color:var(--danger); font:600 12px inherit; cursor:pointer; font-family:inherit; }
+
+  @media (max-width:560px){
+    .scan{ flex-direction:column; }
+    .btn.primary{ padding:12px; }
+    td.acts .btn{ margin:3px 0 0 4px; }
+  }
+</style>
+<style>
+  .grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:14px 18px; }
+  .field label{ display:block; font-size:12px; font-weight:600; color:var(--sub); margin-bottom:5px; }
+  .field input, .field textarea{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--field); border:1px solid var(--line); border-radius:6px; padding:8px 10px; }
+  .field textarea{ min-height:190px; resize:vertical; line-height:1.5; font-family:ui-monospace, Menlo, Consolas, monospace; font-size:13px; }
+  .field input:focus, .field textarea:focus{ outline:2px solid var(--teal); outline-offset:1px; border-color:var(--teal); }
+  .field .note{ font-size:12px; color:var(--sub); margin-top:5px; }
+  .chip{ display:inline-block; margin:6px 6px 0 0; font:600 12px inherit; font-family:inherit; color:var(--teal-dark); background:var(--mist); border:1px solid var(--line); border-radius:999px; padding:3px 10px; cursor:pointer; }
+  .chip.on{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .chip:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .full{ grid-column:1 / -1; }
+  .storage{ display:flex; flex-wrap:wrap; gap:8px 22px; font-size:14px; }
+  .storage label{ display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--ink); font-weight:400; font-size:14px; margin:0; }
+  .storage input{ width:18px; height:18px; accent-color:var(--teal); }
+  .actions{ display:flex; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap; }
+  .src{ font-size:12px; color:var(--sub); }
+  details.settings summary{ cursor:pointer; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--teal-dark); list-style:none; }
+  details.settings summary::-webkit-details-marker{ display:none; }
+  details.settings[open] summary{ margin-bottom:14px; }
+  .actions .btn.primary{ padding:12px 22px; }
+  .hint2{ font-size:12px; color:var(--sub); margin:4px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar"></div>
+  <header>
+    <div class="title">
+      <h1>Internal Pick Up</h1>
+      <p>Scan an internal order’s packing slip QR to write its pick-up email.</p>
+    </div>
+    <div class="right">
+      <img class="logo" src="data:image/png;base64,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" alt="Twist Bioscience">
+      <button class="toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+        <span class="track"><span class="knob" id="knob">☀︎</span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>Scan</h2>
+    <label class="lbl" for="delivery">Delivery number</label>
+    <div class="scan">
+      <input id="delivery" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="80542131">
+      <button class="btn primary" id="lookBtn" type="button">Look up</button>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </div>
+
+  <div class="card" id="emailCard" hidden>
+    <h2>Email</h2>
+    <div class="grid">
+      <div class="field"><label for="q">Q-number</label><input id="q" spellcheck="false"></div>
+      <div class="field"><label for="contact">Customer contact</label><input id="contact"></div>
+      <div class="field"><label for="to">To</label><input id="to" spellcheck="false"><div class="note" id="toNote"></div><div id="toChips"></div></div>
+      <div class="field"><label for="cc">CC</label><input id="cc" spellcheck="false"></div>
+      <div class="field"><label for="when">Pick-up day</label><input id="when">
+        <div><button class="chip" type="button" data-when="today">Today</button><button class="chip" type="button" data-when="tomorrow">Tomorrow</button></div></div>
+      <div class="field"><label for="time">Time</label><input id="time"></div>
+      <div class="field"><label for="loc">Location</label><input id="loc"></div>
+      <div class="field full"><label>Stored in</label>
+        <div class="storage">
+          <label><input type="checkbox" data-store="-80"> −80°C freezer</label>
+          <label><input type="checkbox" data-store="-20"> −20°C freezer</label>
+          <label><input type="checkbox" data-store="4"> 4°C fridge</label>
+          <label><input type="checkbox" data-store="rt"> Room temperature</label>
+        </div>
+        <p class="hint2" id="storeSrc"></p>
+      </div>
+      <div class="field full"><label for="subject">Subject</label><input id="subject"></div>
+      <div class="field full"><label for="body">Message</label><textarea id="body"></textarea>
+        <div class="note">Your Gmail signature is added by Gmail. Edits here are only for this email.</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="gmailBtn" type="button">Open in Gmail</button>
+      <span class="src" id="srcNote"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="settings">
+      <summary>Settings</summary>
+      <div class="grid">
+        <div class="field"><label for="setCc">Always CC</label><input id="setCc" spellcheck="false" placeholder="shipping@twistbioscience.com"></div>
+        <div class="field"><label for="setAcct">Gmail account (optional)</label><input id="setAcct" spellcheck="false" placeholder="nwong@twistbioscience.com">
+          <div class="note">Set this if Gmail opens the wrong account.</div></div>
+        <div class="field"><label for="setTime">Default time</label><input id="setTime"></div>
+        <div class="field"><label for="setLoc">Default location</label><input id="setLoc"></div>
+        <div class="field full"><label for="setSubj">Subject template</label><input id="setSubj"></div>
+        <div class="field full"><label for="setBody">Message template</label><textarea id="setBody"></textarea>
+          <div class="note">Fill-ins: {first} {name} {q} {when} {time} {location} {storage}</div></div>
+      </div>
+      <div class="actions"><button class="linkbtn" id="resetSet" type="button">Reset to defaults</button></div>
+    </details>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  const ECP = "https://vhtweecpci.sap.twistbioscience.com:44300/sap/opu/odata/sap/zotc_delivery_pdf_srv/PDFDocumentCollection";
+  const DEFAULTS = {
+    cc: "", acct: "", time: "11:30 AM", loc: "681 Gateway",
+    subj: "Twist Pick Up {q}",
+    body: "Hello {first},\n\nYour Twist internal order, {q}, will be ready for pick up {when} at {time} at {location}.\n\nPlease note that your order will be stored {storage}.\n\nBest regards,"
+  };
+  const $ = id => document.getElementById(id);
+  const input = $("delivery"), status = $("status");
+  const store = {
+    get(k, f){ try{ const v = localStorage.getItem(k); return v === null ? f : JSON.parse(v); } catch { return f; } },
+    set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+  function applyTheme(t){
+    document.documentElement.dataset.theme = t;
+    $("knob").textContent = t === "dark" ? "☾" : "☀︎";
+    $("themeToggle").setAttribute("aria-pressed", t === "dark");
+  }
+  applyTheme(store.get("sd-theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  $("themeToggle").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; applyTheme(t); store.set("sd-theme", t); };
+  function show(msg, warn){ status.textContent = msg; status.className = warn ? "warn" : ""; }
+  function normalize(raw){
+    const digits = String(raw).replace(/\D/g, "").replace(/^0+/, "");
+    if (!digits || digits.length > 10) return null;
+    return digits.padStart(10, "0");
+  }
+
+  // ---- Settings ----
+  let set = Object.assign({}, DEFAULTS, store.get("io-settings", {}));
+  const setMap = { setCc: "cc", setAcct: "acct", setTime: "time", setLoc: "loc", setSubj: "subj", setBody: "body" };
+  function loadSettings(){ for (const [id, k] of Object.entries(setMap)) $(id).value = set[k]; }
+  for (const [id, k] of Object.entries(setMap)) $(id).addEventListener("input", () => { set[k] = $(id).value; store.set("io-settings", set); });
+  $("resetSet").onclick = () => { set = Object.assign({}, DEFAULTS); store.set("io-settings", set); loadSettings(); };
+  loadSettings();
+  const emails = store.get("io-emails", {});   // contact name -> email you used
+
+  // ---- PDF reading (packing slip via the Tampermonkey script) ----
+  if (window.pdfjsLib){
+    const w = URL.createObjectURL(new Blob(['importScripts("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js")'], { type: "text/javascript" }));
+    pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(w);
+  }
+  let helper = false;
+  window.addEventListener("message", e => { if (e.source === window && e.data && e.data.type === "sd-orders-data") helper = true; });
+  window.postMessage({ type: "sd-orders-request" }, "*");
+  let reqId = 0; const pending = {};
+  window.addEventListener("message", e => {
+    if (e.source !== window || !e.data || e.data.type !== "sd-pdf" || !pending[e.data.id]) return;
+    pending[e.data.id](e.data); delete pending[e.data.id];
+  });
+  function fetchPdf(url){
+    return new Promise((resolve, reject) => {
+      const id = ++reqId;
+      const t = setTimeout(() => { delete pending[id]; reject(new Error("timeout")); }, 20000);
+      pending[id] = r => { clearTimeout(t); resolve(r); };
+      window.postMessage({ type: "sd-fetch-pdf", id, url }, "*");
+    });
+  }
+  async function readSlip(buf){
+    const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    const items = [];
+    for (let p = 1; p <= doc.numPages; p++){
+      const tc = await (await doc.getPage(p)).getTextContent();
+      for (const it of tc.items){
+        const s = it.str.replace(/\s+/g, " ").trim();
+        if (s) items.push({ s, x: it.transform[4], y: it.transform[5] - p * 10000, w: it.width, p });
+      }
+    }
+    const all = items.map(i => i.s).join(" ");
+    const q = (all.match(/Q-\d{4,}/) || [""])[0];
+    // Customer contact: the text just below the "CUSTOMER CONTACT" label
+    let contact = "";
+    const lab = items.find(i => /^customer contact$/i.test(i.s)) ||
+                items.find(i => /^customer$/i.test(i.s) && items.some(j => /^contact$/i.test(j.s) && Math.abs(j.y - i.y) < 3));
+    if (lab){
+      const pair = items.find(j => /^contact$/i.test(j.s) && Math.abs(j.y - lab.y) < 3 && j !== lab);
+      const L = lab.x, R = (lab.s.length < 12 && pair ? pair.x + pair.w : lab.x + lab.w), C = (L + R) / 2;
+      const overlap = i => Math.min(R, i.x + i.w) - Math.max(L, i.x);
+      const below = items.filter(i => i.p === lab.p && i.y < lab.y - 2 && lab.y - i.y < 45 && !/contact|customer/i.test(i.s) && overlap(i) > 0);
+      below.sort((a, b) => b.y - a.y);
+      if (below.length){
+        const yy = below[0].y;
+        const line = below.filter(i => Math.abs(i.y - yy) < 3).sort((a, b) => a.x - b.x);
+        contact = line.map(i => i.s).join(" ");
+      }
+      if (!contact){
+        const near = items.filter(i => i.p === lab.p && i.y < lab.y - 2 && lab.y - i.y < 45 && !/contact|customer/i.test(i.s))
+          .sort((a, b) => Math.abs(a.x + a.w / 2 - C) - Math.abs(b.x + b.w / 2 - C))[0];
+        if (near) contact = near.s;
+      }
+    }
+    if (!contact){ const m = all.match(/Dear ([^,]+),/); if (m) contact = m[1].trim(); }
+    // Storage conditions: standalone temperatures like -20C or 4°C (the comments' "-20°C" sit inside longer lines)
+    const temps = [...new Set(items.filter(i => /^-?\d{1,3}\s*°?\s*C$/i.test(i.s)).map(i => parseInt(i.s, 10)))];
+    const shipEmail = (all.match(/[\w.+-]+@twistbioscience\.com/gi) || []).find(e => !/^customersupport@/i.test(e)) || "";
+    return { q, contact, temps, shipEmail };
+  }
+
+  // ---- Email building ----
+  const STORE_LABEL = { "-80": "−80°C", "-20": "−20°C", "4": "4°C" };
+  function storageBox(t){ return t <= -50 ? "-80" : t < 0 ? "-20" : t <= 10 ? "4" : "rt"; }
+  function storagePhrase(){
+    const on = [...document.querySelectorAll("[data-store]")].filter(c => c.checked).map(c => c.dataset.store);
+    const fz = on.filter(k => k === "-80" || k === "-20").map(k => STORE_LABEL[k].replace("−", "-"));
+    const parts = [];
+    if (fz.length) parts.push(`${fz.join(" and ")} freezer${fz.length > 1 ? "s" : ""}`);
+    if (on.includes("4")) parts.push("4°C fridge");
+    let phrase = parts.length ? "in the " + parts.join(" and ") : "";
+    if (on.includes("rt")) phrase = phrase ? phrase + ", and at room temperature" : "at room temperature";
+    return phrase || "[choose where it’s stored]";
+  }
+  function setToNote(name){
+    const n = name.trim().toLowerCase();
+    $("toNote").textContent = !n ? "" : emails[n] ? "Saved from a past email." : "Guessed from the name. Check it, since slips are sometimes misspelled.";
+  }
+  function guessEmail(name){
+    setToNote(name);
+    const known = emails[name.trim().toLowerCase()];
+    if (known) return known;
+    const parts = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z\s-]/g, "").trim().split(/\s+/);
+    if (parts.length < 2) return "";
+    return parts[0][0] + parts[parts.length - 1].replace(/-/g, "") + "@twistbioscience.com";
+  }
+  const fill = (tpl, v) => tpl.replace(/\{(\w+)\}/g, (m, k) => v[k] != null ? v[k] : m);
+  let bodyEdited = false, subjEdited = false;
+  function rebuild(){
+    const name = $("contact").value.trim();
+    const v = { name, first: name.split(/\s+/)[0] || "", q: $("q").value.trim(), when: $("when").value.trim(),
+                time: $("time").value.trim(), location: $("loc").value.trim(), storage: storagePhrase() };
+    if (!subjEdited) $("subject").value = fill(set.subj, v);
+    if (!bodyEdited) $("body").value = fill(set.body, v);
+    document.querySelectorAll("[data-when]").forEach(b => b.classList.toggle("on", b.dataset.when === v.when.toLowerCase()));
+  }
+  ["q", "when", "time", "loc"].forEach(id => $(id).addEventListener("input", rebuild));
+  $("contact").addEventListener("input", () => { $("to").value = guessEmail($("contact").value); rebuild(); });
+  document.querySelectorAll("[data-store]").forEach(c => c.addEventListener("change", rebuild));
+  document.querySelectorAll("[data-when]").forEach(b => b.onclick = () => { $("when").value = b.dataset.when; rebuild(); });
+  $("body").addEventListener("input", () => bodyEdited = true);
+  $("subject").addEventListener("input", () => subjEdited = true);
+
+  function fillCard(info){
+    bodyEdited = subjEdited = false;
+    $("q").value = info.q || "";
+    $("contact").value = info.contact || "";
+    $("to").value = info.contact ? guessEmail(info.contact) : ""; if (!info.contact) setToNote("");
+    $("cc").value = set.cc;
+    $("when").value = "tomorrow"; $("time").value = set.time; $("loc").value = set.loc;
+    document.querySelectorAll("[data-store]").forEach(c => c.checked = false);
+    (info.temps || []).forEach(t => { const c = document.querySelector(`[data-store="${storageBox(t)}"]`); if (c) c.checked = true; });
+    $("storeSrc").textContent = info.temps && info.temps.length ? "Ticked from the packing slip’s storage conditions." : (info.fromSlip ? "No storage condition found on the slip. Tick one." : "");
+    const chips = $("toChips"); chips.innerHTML = "";
+    if (info.shipEmail){
+      const b = document.createElement("button"); b.className = "chip"; b.type = "button";
+      b.textContent = "Ship To email: " + info.shipEmail;
+      b.onclick = () => { $("to").value = info.shipEmail; };
+      chips.appendChild(b);
+    }
+    $("emailCard").hidden = false;
+    rebuild();
+  }
+
+  async function lookup(){
+    const d = normalize(input.value);
+    if (!d){ show("That isn't a delivery number. Scan the packing slip QR or type the 8 digits.", true); input.select(); return; }
+    const short = d.replace(/^0+/, "");
+    input.value = short;
+    if (!helper || !window.pdfjsLib){
+      fillCard({});
+      show(!helper ? "Couldn’t read the packing slip: the “Scan & Print: dashboard amounts” Tampermonkey script (v1.3+) isn’t running here. Fill in the details below." :
+                     "Couldn’t load the PDF reader. Check your connection and reload.", true);
+      $("srcNote").textContent = ""; $("contact").focus(); return;
+    }
+    show(`Reading the packing slip for ${short}…`);
+    try{
+      const r = await fetchPdf(`${ECP}(DocID='${d}',DocType='Pack')/$value`);
+      if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? "login" : "http " + r.status);
+      if (!/pdf/i.test(r.ctype || "") && new Uint8Array(r.buf.slice(0, 4)).join() !== "37,80,68,70") throw new Error("login");
+      const info = await readSlip(r.buf);
+      info.fromSlip = true;
+      fillCard(info);
+      const missing = [!info.contact && "contact", !info.q && "Q-number"].filter(Boolean);
+      show(missing.length ? `Read the slip, but couldn’t find the ${missing.join(" or ")}. Fill it in below.` :
+                            `Ready for ${info.contact}. Check the email, then click Open in Gmail.`, !!missing.length);
+      $("srcNote").textContent = `From the packing slip for ${short}.`;
+    } catch(e){
+      fillCard({});
+      show(e.message === "login" ? "SAP didn’t return the slip. Log in to SAP in this Chrome, then scan again." :
+           e.message === "timeout" ? "SAP took too long to answer. Scan again." :
+           "Couldn’t read the packing slip for " + short + ". Fill in the details below.", true);
+      $("srcNote").textContent = "";
+    }
+    input.select();
+  }
+  input.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); lookup(); } });
+  $("lookBtn").onclick = lookup;
+
+  $("gmailBtn").onclick = () => {
+    const to = $("to").value.trim();
+    if (!to){ $("to").focus(); return; }
+    const name = $("contact").value.trim();
+    if (name) { emails[name.toLowerCase()] = to; store.set("io-emails", emails); }
+    const p = new URLSearchParams({ view: "cm", fs: "1", to, su: $("subject").value, body: $("body").value });
+    if ($("cc").value.trim()) p.set("cc", $("cc").value.trim());
+    if (set.acct.trim()) p.set("authuser", set.acct.trim());
+    window.open("https://mail.google.com/mail/?" + p.toString(), "_blank");
+    show("Opened in Gmail. Proofread and send.");
+    input.value = ""; input.focus();
+  };
+
+  window.setTheme = t => applyTheme(t === "dark" ? "dark" : "light");
+  if (window.top === window.self) input.focus();
+</script>
+</body>
+</html>
