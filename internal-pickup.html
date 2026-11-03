@@ -174,7 +174,8 @@
   details.settings summary::-webkit-details-marker{ display:none; }
   details.settings[open] summary{ margin-bottom:14px; }
   .actions .btn.primary{ padding:12px 22px; display:inline-flex; align-items:center; gap:9px; }
-  .ico{ width:20px; height:20px; flex:none; }
+  .ico{ width:22px; height:22px; flex:none; }
+  .actions .btn.iconbtn{ padding:11px 18px; }
   .hint2{ font-size:12px; color:var(--sub); margin:4px 0 0; }
 </style>
 </head>
@@ -227,10 +228,10 @@
       </div>
       <div class="field full"><label for="subject">Subject</label><input id="subject"></div>
       <div class="field full"><label for="body">Message</label><textarea id="body"></textarea>
-        <div class="note">Open in Gmail copies this message in Gmail’s Fixed Width font with the Q-number in bold. Click into the Gmail message and press Cmd + V.</div></div>
+        <div class="note">The ✉ button opens Gmail with this message filled in (Fixed Width font, Q-number in bold) above your signature.</div></div>
     </div>
     <div class="actions">
-      <button class="btn primary" id="gmailBtn" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Open in Gmail</button>
+      <button class="btn primary iconbtn" id="gmailBtn" type="button" title="Open in Gmail" aria-label="Open in Gmail"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
       <button class="btn" id="clearAll2" type="button">Clear</button>
       <span class="src" id="srcNote"></span>
     </div>
@@ -487,20 +488,36 @@
       return ok;
     }
   }
+  function stashForGmail(subject, html){
+    return new Promise(resolve => {
+      const id = ++reqId;
+      const done = ok => { window.removeEventListener("message", on); clearTimeout(t); resolve(ok); };
+      const on = e => { if (e.source === window && e.data && e.data.type === "sd-gmail-stash-ok" && e.data.id === id) done(true); };
+      window.addEventListener("message", on);
+      const t = setTimeout(() => done(false), 800);
+      window.postMessage({ type: "sd-gmail-stash", id, subject, html }, "*");
+    });
+  }
   $("gmailBtn").onclick = async () => {
     const to = $("to").value.trim();
     if (!to){ $("to").focus(); return; }
     const name = $("contact").value.trim();
     if (name) { emails[name.toLowerCase()] = to; store.set("io-emails", emails); }
-    const text = $("body").value;
-    const copied = await copyRich(messageHtml(text, $("q").value.trim()), text);
-    const p = new URLSearchParams({ view: "cm", fs: "1", to, su: $("subject").value });
-    if (!copied) p.set("body", text);
+    const text = $("body").value, subject = $("subject").value;
+    const html = messageHtml(text, $("q").value.trim());
+    const p = new URLSearchParams({ view: "cm", fs: "1", to, su: subject });
     if ($("cc").value.trim()) p.set("cc", $("cc").value.trim());
     if (set.acct.trim()) p.set("authuser", set.acct.trim());
-    window.open("https://mail.google.com/mail/?" + p.toString(), "_blank");
-    show(copied ? "Gmail is opening. Click into the message and press Cmd + V, then proofread and send."
-                : "Opened in Gmail as plain text (couldn’t copy the formatted version). Proofread and send.", !copied);
+    // Open the tab first (pop-up blockers need it right after the click), then hand over the message.
+    const win = window.open("about:blank", "_blank");
+    const auto = await stashForGmail(subject, html);
+    let copied = false;
+    if (!auto){ copied = await copyRich(html, text); if (!copied) p.set("body", text); }
+    const url = "https://mail.google.com/mail/?" + p.toString();
+    if (win) win.location.href = url; else window.open(url, "_blank");
+    show(auto ? "Gmail is opening with the message filled in. Proofread and send." :
+         copied ? "Gmail is opening. Click into the message and press Cmd + V, then proofread and send." :
+                  "Opened in Gmail as plain text. Proofread and send.", !auto && !copied);
     input.value = "";
   };
 
