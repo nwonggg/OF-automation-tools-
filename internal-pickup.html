@@ -322,11 +322,14 @@
       const tc = await (await doc.getPage(p)).getTextContent();
       for (const it of tc.items){
         const s = it.str.replace(/\s+/g, " ").trim();
-        if (s) items.push({ s, x: it.transform[4], y: it.transform[5] - p * 10000, w: it.width, p });
+        if (s) items.push({ s, x: it.transform[4], y: it.transform[5] - p * 10000, w: it.width, p, size: Math.abs(it.transform[3]) || it.height || 0 });
       }
     }
     const all = items.map(i => i.s).join(" ");
-    const q = (all.match(/Q-\d{4,}/) || [""])[0];
+    // The order's Q-number is the big one in the header; other Q-numbers can appear in notes.
+    const qItems = items.map(i => ({ i, m: i.s.match(/Q-\d{4,}/) })).filter(x => x.m);
+    qItems.sort((a, b) => (b.i.size - a.i.size) || (a.i.p - b.i.p) || (b.i.y - a.i.y));
+    const q = qItems.length ? qItems[0].m[0] : "";
     // Customer contact: the text just below the "CUSTOMER CONTACT" label
     let contact = "";
     const lab = items.find(i => /^customer contact$/i.test(i.s)) ||
@@ -352,7 +355,8 @@
     // Storage conditions: standalone temperatures like -20C or 4°C (the comments' "-20°C" sit inside longer lines)
     const temps = [...new Set(items.filter(i => /^-?\d{1,3}\s*°?\s*C$/i.test(i.s)).map(i => parseInt(i.s, 10)))];
     const shipEmail = (all.match(/[\w.+-]+@twistbioscience\.com/gi) || []).find(e => !/^customersupport@/i.test(e)) || "";
-    return { q, contact, temps, shipEmail };
+    const internal = /ship to[\s\S]{0,40}twist bioscience/i.test(all) || /@twistbioscience\.com/i.test(shipEmail);
+    return { q, contact, temps, shipEmail, internal };
   }
 
   // ---- Email building ----
@@ -438,8 +442,9 @@
       info.fromSlip = true;
       fillCard(info);
       const missing = [!info.contact && "contact", !info.q && "Q-number"].filter(Boolean);
-      show(missing.length ? `Read the slip, but couldn’t find the ${missing.join(" or ")}. Fill it in below.` :
-                            `Ready for ${info.contact}. Check the email, then click Open in Gmail.`, !!missing.length);
+      show(!info.internal ? `Heads up: ${info.q || short} doesn’t look like an internal order (it isn’t shipping to Twist Bioscience). Double-check before sending.` :
+           missing.length ? `Read the slip, but couldn’t find the ${missing.join(" or ")}. Fill it in below.` :
+                            `Ready for ${info.contact}. Check the email, then click ✉.`, !info.internal || !!missing.length);
       $("srcNote").textContent = `From the packing slip for ${short}.`;
     } catch(e){
       fillCard({});
