@@ -199,6 +199,7 @@
     <div class="scan">
       <input id="delivery" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="80542131">
       <button class="btn primary" id="lookBtn" type="button">Look up</button>
+      <button class="btn" id="clearAll" type="button">Clear</button>
     </div>
     <p id="status" role="status" aria-live="polite"></p>
   </div>
@@ -229,6 +230,7 @@
     </div>
     <div class="actions">
       <button class="btn primary" id="gmailBtn" type="button">Open in Gmail</button>
+      <button class="btn" id="clearAll2" type="button">Clear</button>
       <span class="src" id="srcNote"></span>
     </div>
   </div>
@@ -445,6 +447,17 @@
   }
   input.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); lookup(); } });
   $("lookBtn").onclick = lookup;
+
+  function clearAll(){
+    input.value = ""; show("");
+    ["q", "contact", "to", "subject", "body"].forEach(id => $(id).value = "");
+    document.querySelectorAll("[data-store]").forEach(c => c.checked = false);
+    $("toChips").innerHTML = ""; $("toNote").textContent = ""; $("storeSrc").textContent = ""; $("srcNote").textContent = "";
+    $("emailCard").hidden = true;
+    input.focus();
+  }
+  $("clearAll").onclick = clearAll;
+  $("clearAll2").onclick = clearAll;
 
   $("gmailBtn").onclick = () => {
     const to = $("to").value.trim();
