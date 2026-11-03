@@ -495,7 +495,7 @@
       const on = e => { if (e.source === window && e.data && e.data.type === "sd-gmail-stash-ok" && e.data.id === id) done(true); };
       window.addEventListener("message", on);
       const t = setTimeout(() => done(false), 800);
-      window.postMessage({ type: "sd-gmail-stash", id, subject, html }, "*");
+      window.postMessage({ type: "sd-gmail-stash", id, subject, html, text: $("body").value, q: $("q").value.trim() }, "*");
     });
   }
   $("gmailBtn").onclick = async () => {
