@@ -85,9 +85,9 @@
   .home-btn:hover{color:var(--ink);background:var(--line-soft);}
   .home-btn[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);border-color:transparent;}
 
-  /* Tool tabs: 3 per row, so 6 tools sit in 2 rows */
+  /* Tool tabs: one row per group, with the group's name at the start of the row */
   nav{
-    display:grid; grid-template-columns:repeat(3, auto); gap:4px; padding:4px;
+    display:grid; grid-template-columns:auto repeat(3, auto); align-items:center; gap:2px 4px; padding:4px;
     background:var(--panel); border:1px solid var(--line); border-radius:10px;
     max-width:100%;
   }
@@ -99,6 +99,12 @@
     transition:var(--transition);
   }
   nav a:hover{color:var(--ink);background:var(--line-soft);}
+  .tab-group{
+    grid-column:1; padding:0 10px 0 8px;
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-faint, var(--ink-soft)); white-space:nowrap; text-align:right;
+  }
+  .tab-group + a{grid-column:2;}
   nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);}
 
   .newtab{font-size:12px;font-weight:600;color:var(--ink-soft);text-decoration:none;white-space:nowrap;}
@@ -286,6 +292,9 @@
     .hub-inner{grid-template-columns:auto 1fr;}
     .center{grid-column:1 / -1;grid-row:2;justify-self:center;max-width:100%;}
     .newtab{display:none;}
+    nav{grid-template-columns:repeat(3, auto);}
+    .tab-group{display:none;}
+    .tab-group + a{grid-column:auto;}
   }
   @media (max-width:640px){
     .tiles{grid-template-columns:1fr;}
@@ -344,20 +353,26 @@
   // While it's blank, the Label Requests tool stays hidden.
   const LABEL_REQUESTS_URL = "https://script.google.com/a/macros/twistbioscience.com/s/AKfycbwac30bm-NgrnyY2MJzJY3UOvi735Vp8nN6-lz_ChbXKywTrDIXXgu7rS5rW4UFw1ZHDA/exec";
 
-  // Add, rename or reorder tools here.
+  // Add, rename or reorder tools here. "group" sets which labeled row of tabs a tool sits in.
   // themeByUrl: the tool lives on another site, so the hub passes light/dark in its address instead.
   const TOOLS = [
     { id: "packing", name: "Packing Slips",  url: "https://nwonggg.github.io/-packing-slip-generator-/",
+      group: "Documents",
       blurb: "Enter shipment details once, split items across boxes, and download a PDF slip for each box." },
     { id: "adc-coo", name: "ADC & COO",      url: "https://nwonggg.github.io/adc-coo-ci/",
+      group: "Documents",
       blurb: "Pick list in, ADC Excel out. Packing slips in, Certificate of Origin out." },
     { id: "hts",     name: "HTS Calculator", url: "https://nwonggg.github.io/HTS-Calculator/",
+      group: "Documents",
       blurb: "Upload commercial invoices, match line items to HS codes, and get totals per code." },
     { id: "docs",    name: "Scan & Print",   url: "./scan-and-print.html",
+      group: "Daily ops",
       blurb: "Scan a packing slip QR to open its GTS invoice and packing slip in SAP." },
     { id: "pickup",  name: "Internal Pick Up", url: "./internal-pickup.html",
+      group: "Daily ops",
       blurb: "Scan an internal order to write its pick-up email: contact, storage and time filled in, ready in Gmail." },
     { id: "requests", name: "Label Requests", url: LABEL_REQUESTS_URL, themeByUrl: true,
+      group: "Daily ops",
       blurb: "Live view of internal shipping label requests: what's open, needs attention and shipped." }
   ].filter(t => t.url);
 
@@ -529,8 +544,17 @@
   const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   setTheme(prefersDark ? "dark" : "light");
 
-  // ---------- Tool tabs (center) ----------
+  // ---------- Tool tabs (center): one labeled row per group ----------
+  let lastGroup = null;
   TOOLS.forEach(t => {
+    const g = t.group || "Tools";
+    if (g !== lastGroup){
+      const lab = document.createElement("span");
+      lab.className = "tab-group";
+      lab.textContent = g;
+      tabs.appendChild(lab);
+      lastGroup = g;
+    }
     const a = document.createElement("a");
     a.href = "#" + t.id;
     a.textContent = t.name;
