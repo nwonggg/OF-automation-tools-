@@ -339,7 +339,12 @@
 </main>
 
 <script>
+  // Label Requests web app URL (Apps Script: Deploy > Manage deployments > Web app URL).
+  // While it's blank, the Label Requests tool stays hidden.
+  const LABEL_REQUESTS_URL = "https://script.google.com/a/macros/twistbioscience.com/s/AKfycbxFQcZuuRalktuFUJu3ohQ3ozmTUFJMXSHJXkWtiQLIWy80R3yUUvxdRqhJdTXiG7Cg6w/exec";
+
   // Add, rename or reorder tools here.
+  // themeByUrl: the tool lives on another site, so the hub passes light/dark in its address instead.
   const TOOLS = [
     { id: "packing", name: "Packing Slips",  url: "https://nwonggg.github.io/-packing-slip-generator-/",
       blurb: "Enter shipment details once, split items across boxes, and download a PDF slip for each box." },
@@ -350,8 +355,16 @@
     { id: "docs",    name: "Scan & Print",   url: "./scan-and-print.html",
       blurb: "Scan a packing slip QR to open its GTS invoice and packing slip in SAP." },
     { id: "pickup",  name: "Internal Pick Up", url: "./internal-pickup.html",
-      blurb: "Scan an internal order to write its pick-up email: contact, storage and time filled in, ready in Gmail." }
-  ];
+      blurb: "Scan an internal order to write its pick-up email: contact, storage and time filled in, ready in Gmail." },
+    { id: "requests", name: "Label Requests", url: LABEL_REQUESTS_URL, themeByUrl: true,
+      blurb: "Live view of internal shipping label requests: what's open, needs attention and shipped." }
+  ].filter(t => t.url);
+
+  // Address for a tool's frame: tools on other sites get the hub's theme and embed mode in the URL.
+  function frameUrl(t){
+    if (!t.themeByUrl) return t.url;
+    return t.url + (t.url.includes("?") ? "&" : "?") + "embed=1&theme=" + theme;
+  }
 
   const tabs = document.getElementById("tabs");
   const homeBtn = document.getElementById("homeBtn");
@@ -491,6 +504,12 @@
 
   // ---------- Theme (also flips every embedded tool that supports it) ----------
   function applyThemeTo(frame){
+    const t = TOOLS.find(x => x.id === frame.dataset.id);
+    if (t && t.themeByUrl){
+      const want = frameUrl(t);
+      if (frame.dataset.loaded !== want){ frame.dataset.loaded = want; frame.src = want; } // reload in the new theme
+      return;
+    }
     try{
       const w = frame.contentWindow;
       if (typeof w.setTheme === "function") w.setTheme(theme);
@@ -537,7 +556,8 @@
         <span class="go">Open →</span>
       </div>`;
     const f = a.querySelector("iframe");
-    f.src = t.url;
+    f.dataset.id = t.id;
+    f.src = f.dataset.loaded = frameUrl(t);
     f.addEventListener("load", () => { hideToolChrome(f, t.id); if (t.id === "packing") customizePacking(f); applyThemeTo(f); });
     previewFrames.push(f);
     wrap.appendChild(a);
@@ -597,7 +617,7 @@
     if (!toolFrames[tool.id]){
       const f = document.createElement("iframe");
       f.className = "tool-frame";
-      f.src = tool.url;
+      f.src = f.dataset.loaded = frameUrl(tool);
       f.title = tool.name;
       f.dataset.id = tool.id;
       f.setAttribute("allow", "clipboard-read; clipboard-write");
