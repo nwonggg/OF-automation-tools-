@@ -85,14 +85,15 @@
   .home-btn:hover{color:var(--ink);background:var(--line-soft);}
   .home-btn[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);border-color:transparent;}
 
+  /* Tool tabs: 3 per row, so 6 tools sit in 2 rows */
   nav{
-    display:flex; gap:4px; padding:4px;
+    display:grid; grid-template-columns:repeat(3, auto); gap:4px; padding:4px;
     background:var(--panel); border:1px solid var(--line); border-radius:10px;
-    overflow-x:auto; scrollbar-width:none; max-width:100%;
+    max-width:100%;
   }
   nav::-webkit-scrollbar{display:none;}
   nav a{
-    padding:7px 14px; border-radius:7px;
+    padding:7px 14px; border-radius:7px; text-align:center;
     color:var(--ink-soft); text-decoration:none;
     font-size:14px; font-weight:600; white-space:nowrap;
     transition:var(--transition);
@@ -341,7 +342,7 @@
 <script>
   // Label Requests web app URL (Apps Script: Deploy > Manage deployments > Web app URL).
   // While it's blank, the Label Requests tool stays hidden.
-  const LABEL_REQUESTS_URL = "https://script.google.com/a/macros/twistbioscience.com/s/AKfycbxFQcZuuRalktuFUJu3ohQ3ozmTUFJMXSHJXkWtiQLIWy80R3yUUvxdRqhJdTXiG7Cg6w/exec";
+  const LABEL_REQUESTS_URL = "https://script.google.com/a/macros/twistbioscience.com/s/AKfycbwac30bm-NgrnyY2MJzJY3UOvi735Vp8nN6-lz_ChbXKywTrDIXXgu7rS5rW4UFw1ZHDA/exec";
 
   // Add, rename or reorder tools here.
   // themeByUrl: the tool lives on another site, so the hub passes light/dark in its address instead.
