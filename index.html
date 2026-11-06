@@ -114,6 +114,22 @@
   nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);}
 
   .newtab{font-size:12px;font-weight:600;color:var(--ink-soft);text-decoration:none;white-space:nowrap;}
+  /* Label requests: an inbox button you check, separate from the tool tabs */
+  .inbox-btn{
+    display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    color:var(--ink-soft);text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;
+    transition:var(--transition);
+  }
+  .inbox-btn svg{width:17px;height:17px;}
+  .inbox-btn:hover{color:var(--ink);background:var(--line-soft);}
+  .inbox-btn[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);border-color:transparent;}
+  .inbox-count{min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:700;background:var(--accent-soft);color:var(--accent-strong);font-variant-numeric:tabular-nums;}
+  .inbox-btn.alert{border-color:#e3a5a0;color:#b3312c;background:#fbeceb;}
+  .inbox-btn.alert .inbox-count{background:#b3312c;color:#fff;}
+  :root[data-theme="dark"] .inbox-btn.alert{border-color:#7a3a36;color:#f0a39e;background:#3a2220;}
+  :root[data-theme="dark"] .inbox-btn.alert .inbox-count{background:#e8807b;color:#1a1a1a;}
   .newtab:hover{color:var(--accent-strong);}
   .newtab[hidden]{display:none;}
 
@@ -298,6 +314,7 @@
     .hub-inner{grid-template-columns:auto 1fr;}
     .center{grid-column:1 / -1;grid-row:2;justify-self:center;max-width:100%;}
     .newtab{display:none;}
+    .inbox-btn span:not(.inbox-count){display:none;}
     .tab-group{display:none;}
     nav{grid-template-columns:repeat(3, auto);}
     nav a{grid-row:auto;}
@@ -324,6 +341,10 @@
     </div>
     <nav class="center" id="tabs" aria-label="Tools"></nav>
     <div class="right">
+      <a class="inbox-btn" id="inboxBtn" href="#requests" hidden title="Shipping label requests">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13h4l2 3h4l2-3h4"/><path d="M4 13 6.5 5h11L20 13v6H4z"/></svg>
+        <span>Label requests</span><span class="inbox-count" id="inboxCount" hidden></span>
+      </a>
       <a class="newtab" id="newtab" target="_blank" rel="noopener" hidden>Open in new tab ↗</a>
       <a class="brand" href="#" aria-label="Twist Bioscience — Home">
         <span class="brand-word">T W I S T</span>
@@ -380,7 +401,7 @@
       group: "Daily ops",
       blurb: "Scan an internal order to write its pick-up email: contact, storage and time filled in, ready in Gmail." },
     { id: "requests", name: "Label Requests", url: LABEL_REQUESTS_URL, themeByUrl: true,
-      group: "Daily ops",
+      inbox: true,   // opened from the inbox button in the header, not a tab
       blurb: "Live view of internal shipping label requests: what's open, needs attention and shipped." }
   ].filter(t => t.url);
 
@@ -553,22 +574,47 @@
   setTheme(prefersDark ? "dark" : "light");
 
   // ---------- Tool tabs (center): one labeled row per group ----------
-  let lastGroup = null;
-  TOOLS.forEach(t => {
-    const g = t.group || "Tools";
-    if (g !== lastGroup){
-      const lab = document.createElement("span");
-      lab.className = "tab-group";
-      lab.textContent = g;
-      tabs.appendChild(lab);
-      lastGroup = g;
-    }
-    const a = document.createElement("a");
-    a.href = "#" + t.id;
-    a.textContent = t.name;
-    a.dataset.id = t.id;
-    tabs.appendChild(a);
+  const TAB_TOOLS = TOOLS.filter(t => !t.inbox);
+  const groupNames = [...new Set(TAB_TOOLS.map(t => t.group || "Tools"))];
+  tabs.style.gridTemplateColumns = `repeat(${TAB_TOOLS.length}, auto)`;
+  let col = 1;
+  groupNames.forEach(g => {
+    const members = TAB_TOOLS.filter(t => (t.group || "Tools") === g);
+    const lab = document.createElement("span");
+    lab.className = "tab-group";
+    lab.textContent = g;
+    lab.style.gridColumn = `${col} / ${col + members.length}`;
+    tabs.appendChild(lab);
+    members.forEach(t => {
+      const a = document.createElement("a");
+      a.href = "#" + t.id;
+      a.textContent = t.name;
+      a.dataset.id = t.id;
+      tabs.appendChild(a);
+    });
+    col += members.length;
   });
+
+  // ---------- Label requests inbox button (header) ----------
+  // Shows open requests and turns red when any need attention. The Label Requests app
+  // reports its numbers with postMessage({ type: "label-requests-summary", open, attention }).
+  const inboxBtn = document.getElementById("inboxBtn");
+  const inboxCount = document.getElementById("inboxCount");
+  const inboxTool = TOOLS.find(t => t.inbox);
+  if (inboxTool){
+    inboxBtn.hidden = false;
+    inboxBtn.href = "#" + inboxTool.id;
+    window.addEventListener("message", e => {
+      const m = e.data;
+      if (!m || m.type !== "label-requests-summary") return;
+      if (!/^https:\/\/([a-z0-9-]+\.)*(google\.com|googleusercontent\.com)$/.test(e.origin)) return;
+      const open = Number(m.open) || 0, attention = Number(m.attention) || 0;
+      inboxCount.hidden = !(open || attention);
+      inboxCount.textContent = attention || open;
+      inboxBtn.classList.toggle("alert", attention > 0);
+      inboxBtn.title = `${open} open label request${open === 1 ? "" : "s"}` + (attention ? `, ${attention} need${attention === 1 ? "s" : ""} attention` : "");
+    });
+  }
 
   // ---------- Home tiles with live previews ----------
   TOOLS.forEach((t, i) => {
@@ -635,6 +681,7 @@
       if (tool && a.dataset.id === tool.id) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
     });
+    if (tool && tool.inbox) inboxBtn.setAttribute("aria-current", "page"); else inboxBtn.removeAttribute("aria-current");
     if (tool) homeBtn.removeAttribute("aria-current");
     else homeBtn.setAttribute("aria-current", "page");
 
@@ -646,18 +693,7 @@
       return;
     }
 
-    // Each tool loads once and stays alive, so work in progress survives switching.
-    if (!toolFrames[tool.id]){
-      const f = document.createElement("iframe");
-      f.className = "tool-frame";
-      f.src = f.dataset.loaded = frameUrl(tool);
-      f.title = tool.name;
-      f.dataset.id = tool.id;
-      f.setAttribute("allow", "clipboard-read; clipboard-write");
-      f.addEventListener("load", () => { hideToolChrome(f, tool.id); if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
-      frames.appendChild(f);
-      toolFrames[tool.id] = f;
-    }
+    ensureFrame(tool);
     home.hidden = true;
     Object.values(toolFrames).forEach(f => f.classList.toggle("active", f.dataset.id === tool.id));
     newtab.hidden = false;
@@ -676,8 +712,26 @@
     active.addEventListener("load", focusScan, { once: true });
   }
 
+  // Each tool loads once and stays alive, so work in progress survives switching.
+  function ensureFrame(tool){
+    if (!toolFrames[tool.id]){
+      const f = document.createElement("iframe");
+      f.className = "tool-frame";
+      f.src = f.dataset.loaded = frameUrl(tool);
+      f.title = tool.name;
+      f.dataset.id = tool.id;
+      f.setAttribute("allow", "clipboard-read; clipboard-write");
+      f.addEventListener("load", () => { hideToolChrome(f, tool.id); if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
+      frames.appendChild(f);
+      toolFrames[tool.id] = f;
+    }
+    return toolFrames[tool.id];
+  }
+
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));
   show(location.hash.slice(1));
+  // Load Label Requests quietly in the background so the inbox count is ready.
+  if (inboxTool) setTimeout(() => ensureFrame(inboxTool), 1500);
 </script>
 </body>
 </html>
