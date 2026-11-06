@@ -1,439 +1,737 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Twist Bioscience — Scan &amp; Print</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order Fulfillment Tools — Twist Bioscience</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
 <style>
   :root{
-    --teal: #3F9F82;
-    --teal-dark: #2D7A63;
-    --ink: #1B1F1D;
-    --sub: #5b6763;
-    --paper: #FFFFFF;
-    --mist: #F4F7F6;
-    --line: #D8E0DE;
-    --field: #FFFFFF;
-    --danger: #b3312c;
-    --danger-soft: #fbeceb;
+    --ink:#232e35;
+    --ink-soft:#5b6b7a;
+    --ink-faint:#8b98a3;
+    --line:#e2e5e2;
+    --line-soft:#ecefec;
+    --bg:#f4f5f4;
+    --panel:#ffffff;
+    --accent:#04a973;
+    --accent-strong:#19805e;
+    --accent-soft:#e1f9f1;
+    --accent-grad-a:#19805e;
+    --accent-grad-b:#2ad39b;
+    --glass:rgba(244,245,244,0.55);
+    --glass-edge:rgba(255,255,255,0.7);
+    --shadow:0 18px 40px -18px rgba(35,46,53,0.35);
+    --transition: background .18s ease, border-color .18s ease, color .18s ease;
     color-scheme: light;
   }
-  :root[data-theme="dark"]{
-    --teal: #4FB894;
-    --teal-dark: #6FCBA9;
-    --ink: #E7EEEB;
-    --sub: #9AA8A3;
-    --paper: #1C2422;
-    --mist: #121816;
-    --line: #2F3B38;
-    --field: #161D1B;
-    --danger: #E8807B;
-    --danger-soft: #3a2220;
+  [data-theme="dark"]{
+    --ink:#e0e5eb;
+    --ink-soft:#98a8b3;
+    --ink-faint:#6d7d88;
+    --line:#354652;
+    --line-soft:#2a3841;
+    --bg:#0f0f10;
+    --panel:#1a232a;
+    --accent:#2ad39b;
+    --accent-strong:#2ad39b;
+    --accent-soft:#15332a;
+    --accent-grad-a:#144348;
+    --accent-grad-b:#2ad39b;
+    --glass:rgba(15,15,16,0.55);
+    --glass-edge:rgba(255,255,255,0.08);
+    --shadow:0 18px 40px -18px rgba(0,0,0,0.8);
     color-scheme: dark;
   }
-  *{ box-sizing: border-box; }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  html{background:var(--bg);}
   body{
-    margin:0;
-    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    background: var(--mist);
-    color: var(--ink);
-    padding: 32px 20px 80px;
+    font-family:-apple-system, "Segoe UI", system-ui, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    padding-top:env(safe-area-inset-top, 0px);
+    transition:var(--transition);
   }
-  .wrap{ max-width: 880px; margin: 0 auto; }
-  .brandbar{
-    height:6px;
-    background: linear-gradient(90deg, var(--teal), var(--teal-dark));
-    border-radius: 4px;
-    margin-bottom:18px;
-  }
-  header{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom: 28px; flex-wrap: wrap; gap:12px;
-  }
-  header .title h1{ font-size: 20px; margin:0 0 2px; letter-spacing:0.2px; }
-  header .title p{ margin:0; font-size:13px; color:var(--sub); }
-  header .right{ display:flex; align-items:center; gap:18px; }
-  .logo{ height:40px; display:block; mix-blend-mode: multiply; }
-  :root[data-theme="dark"] .logo{ filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; }
 
-  .toggle{
-    display:inline-flex; align-items:center; gap:8px;
-    background:none; border:none; padding:0; cursor:pointer; color:var(--sub);
-    font: 600 12px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* ---------- Shared header ---------- */
+  .topbar{
+    height:4px; width:100%; flex-shrink:0;
+    background:linear-gradient(90deg, var(--accent-grad-a), var(--accent-grad-b));
   }
-  .toggle .track{
-    width:38px; height:22px; border-radius:11px; background:var(--line); position:relative; transition:background .2s;
+  .hub{flex-shrink:0;border-bottom:1px solid var(--line);padding:0 20px;}
+  /* Left corner: Home · Center: tool tabs · Right corner: brand + toggle */
+  .hub-inner{
+    padding:12px 0;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:16px;
   }
-  .toggle .knob{
-    position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%;
-    background:#fff; transition:transform .2s; display:grid; place-items:center; font-size:10px; line-height:1;
+  .left{justify-self:start;}
+  .right{justify-self:end;display:flex;align-items:center;gap:12px;}
+
+  .home-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:36px;padding:0;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    color:var(--ink-soft);text-decoration:none;
+    font-size:14px;font-weight:600;white-space:nowrap;
+    transition:var(--transition);
   }
-  :root[data-theme="dark"] .toggle .track{ background:var(--teal); }
-  :root[data-theme="dark"] .toggle .knob{ transform:translateX(16px); }
-  .toggle:focus-visible{ outline:2px solid var(--teal); outline-offset:3px; border-radius:12px; }
+  .home-btn svg{width:18px;height:18px;}
+  .home-btn:hover{color:var(--ink);background:var(--line-soft);}
+  .home-btn[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);border-color:transparent;}
 
-  .card{
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 20px 22px;
-    margin-bottom: 18px;
+  /* Tool tabs: all in one row, each group's name centered above its three tabs */
+  nav{
+    display:grid; grid-template-columns:repeat(6, auto); align-items:center; gap:0 4px; padding:4px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    max-width:100%;
   }
-  .card h2{
-    font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--teal-dark); margin: 0 0 14px;
+  nav::-webkit-scrollbar{display:none;}
+  nav a{
+    padding:7px 14px; border-radius:7px; text-align:center;
+    color:var(--ink-soft); text-decoration:none;
+    font-size:14px; font-weight:600; white-space:nowrap;
+    transition:var(--transition);
   }
-  label.lbl{ display:block; font-size:12px; color:var(--sub); font-weight:600; margin-bottom:6px; }
-
-  .scan{ display:flex; gap:10px; }
-  #delivery{
-    flex:1; min-width:0;
-    font-family:inherit; font-size:22px; font-weight:500; letter-spacing:0.04em;
-    font-variant-numeric: tabular-nums;
-    border:1px solid var(--line); border-radius:6px; padding:10px 14px;
-    background:var(--field); color:var(--ink);
+  nav a:hover{color:var(--ink);background:var(--line-soft);}
+  .tab-group{
+    grid-row:1; padding:3px 0 2px;
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-faint, var(--ink-soft)); white-space:nowrap; text-align:center;
   }
-  #delivery::placeholder{ color: var(--line); opacity:1; }
-  #delivery:focus{ outline: 2px solid var(--teal); outline-offset:1px; border-color:var(--teal); }
+  .tab-group:nth-of-type(1){grid-column:1 / 4;}
+  .tab-group:nth-of-type(2){grid-column:4 / 7;}
+  nav a{grid-row:2;}
+  /* thin divider between the two groups */
+  nav a:nth-of-type(4){margin-left:9px;position:relative;overflow:visible;}
+  nav a:nth-of-type(4)::before{content:"";position:absolute;left:-7px;top:-20px;bottom:4px;border-left:1px solid var(--line);}
+  .tab-group:nth-of-type(2){margin-left:9px;}
+  nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);}
 
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:6px;
-    font-size:13px; font-weight:600; padding:8px 14px; border-radius:6px;
-    border:1px solid var(--line); background:var(--field); color:var(--ink); cursor:pointer; font-family:inherit;
+  .newtab{font-size:12px;font-weight:600;color:var(--ink-soft);text-decoration:none;white-space:nowrap;}
+  /* Label requests: an inbox button you check, separate from the tool tabs */
+  .inbox-btn{
+    display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    color:var(--ink-soft);text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;
+    transition:var(--transition);
   }
-  .btn:hover{ border-color: var(--teal); color: var(--teal-dark); }
-  .btn.primary{ background: var(--teal); border-color: var(--teal); color:#fff; font-size:15px; padding:0 22px; }
-  .btn.primary:hover{ background: var(--teal-dark); border-color: var(--teal-dark); color:#fff; }
-  .btn.small{ font-size:12px; padding:5px 10px; }
-  .btn:focus-visible{ outline: 2px solid var(--teal); outline-offset:2px; }
+  .inbox-btn svg{width:17px;height:17px;}
+  .inbox-btn:hover{color:var(--ink);background:var(--line-soft);}
+  .inbox-btn[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);border-color:transparent;}
+  .inbox-count{min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:700;background:var(--accent-soft);color:var(--accent-strong);font-variant-numeric:tabular-nums;}
+  .inbox-btn.alert{border-color:#e3a5a0;color:#b3312c;background:#fbeceb;}
+  .inbox-btn.alert .inbox-count{background:#b3312c;color:#fff;}
+  :root[data-theme="dark"] .inbox-btn.alert{border-color:#7a3a36;color:#f0a39e;background:#3a2220;}
+  :root[data-theme="dark"] .inbox-btn.alert .inbox-count{background:#e8807b;color:#1a1a1a;}
+  .newtab:hover{color:var(--accent-strong);}
+  .newtab[hidden]{display:none;}
 
-  .docs{ display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:14px; }
-  .docs label{ display:flex; align-items:center; gap:7px; font-size:13.5px; cursor:pointer; }
-  .docs input{ width:16px; height:16px; accent-color: var(--teal); }
-  .docs.auto{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
-  .docs .hint{ color:var(--sub); font-size:12px; }
+  .brand{display:flex;align-items:center;gap:7px;text-decoration:none;}
+  .brand-word{font-weight:700;font-size:11px;letter-spacing:.32em;color:var(--ink);white-space:nowrap;}
+  .brand-dot{color:var(--accent);font-weight:700;font-size:11px;}
+  .brand-sub{font-weight:700;font-size:11px;letter-spacing:.28em;color:var(--accent);white-space:nowrap;}
 
-  #status{ font-size:13px; font-weight:600; margin:14px 0 0; min-height:1.4em; color:var(--teal-dark); }
-  #status.warn{ color:var(--danger); background:var(--danger-soft); padding:9px 12px; border-radius:6px; font-weight:500; }
-
-  .queue{ margin-top:14px; }
-  .queue[hidden]{ display:none; }
-  .queue-head{ display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:600; color:var(--sub); margin-bottom:8px; }
-  .order{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 28px; padding:12px 16px; border:1px solid var(--line); border-radius:8px; background:var(--mist); margin-top:8px; }
-  .order .dnum{ font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; min-width:92px; }
-  .order .rm{ margin-left:auto; align-self:center; background:none; border:none; color:var(--sub); font:600 12px inherit; font-family:inherit; cursor:pointer; padding:4px 6px; border-radius:4px; }
-  .order .rm:hover{ color:var(--danger); }
-  .order .rm:focus-visible{ outline:2px solid var(--teal); }
-  .order .amt{ font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
-  .order .amt small{ font-size:12px; font-weight:600; color:var(--sub); margin-left:4px; }
-  .order .meta{ font-size:13.5px; color:var(--sub); }
-  .order .meta b{ color:var(--ink); font-weight:600; }
-  .order.miss{ background:var(--danger-soft); border-color:transparent; }
-  .order.miss .meta{ color:var(--danger); }
-
-  .card-head .tally-week{ margin-left:auto; margin-right:14px; position:relative; }
-  .tally-week summary{ list-style:none; cursor:pointer; font-size:12.5px; color:var(--sub); padding:4px 10px; border:1px solid var(--line); border-radius:999px; background:var(--mist); font-variant-numeric:tabular-nums; }
-  .tally-week summary::-webkit-details-marker{ display:none; }
-  .tally-week summary b{ color:var(--ink); }
-  .tally-week summary:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
-  .tally-pop{ position:absolute; right:0; top:calc(100% + 6px); z-index:5; width:280px; background:var(--paper); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.12); padding:6px 10px; }
-  table.tally th{ background:none; color:var(--sub); padding:6px 4px; }
-  table.tally td{ padding:5px 4px; font-size:12.5px; }
-  table.tally td.n, table.tally th.n{ text-align:right; font-variant-numeric:tabular-nums; }
-
-  table{ width:100%; border-collapse:collapse; }
-  th{
-    background: #A6A6A6; color:#fff; font-size:11px; text-transform:uppercase;
-    letter-spacing:0.03em; padding:6px 8px; text-align:left; font-weight:700;
+  .theme-toggle{
+    width:46px;height:24px;border-radius:999px;
+    border:1px solid var(--line);background:var(--line-soft);
+    cursor:pointer;padding:2px;
+    display:flex;align-items:center;justify-content:flex-start;
+    transition:var(--transition);
   }
-  :root[data-theme="dark"] th{ background:#3a4744; }
-  td{ padding:8px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
-  td.num{ font-weight:600; font-variant-numeric: tabular-nums; }
-  td.amtc{ font-variant-numeric: tabular-nums; white-space:nowrap; }
-  td.time{ color:var(--sub); white-space:nowrap; }
-  td.acts{ text-align:right; }
-  td.acts .btn{ margin-left:6px; }
-  .empty{ color:var(--sub); font-size:13px; padding:12px 8px; }
-  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  .card-head h2{ margin:0; }
-  .linkbtn{ background:none; border:none; color:var(--danger); font:600 12px inherit; cursor:pointer; font-family:inherit; }
+  .theme-toggle.on{justify-content:flex-end;}
+  .theme-toggle .knob{
+    width:18px;height:18px;border-radius:50%;
+    background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;flex-shrink:0;
+  }
+  nav a:focus-visible,.home-btn:focus-visible,.newtab:focus-visible,.theme-toggle:focus-visible,.tile:focus-visible{
+    outline:2px solid var(--accent);outline-offset:3px;
+  }
 
-  @media (max-width:560px){
-    .scan{ flex-direction:column; }
-    .btn.primary{ padding:12px; }
-    td.acts .btn{ margin:3px 0 0 4px; }
+  /* ---------- Home ---------- */
+  main{flex:1;position:relative;}
+  #home{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;}
+  #home[hidden]{display:none;}
+
+  /* Hero stays pinned while the content sheet scrolls up over it */
+  .hero{
+    --p:0;
+    position:sticky;top:0;z-index:0;
+    height:min(64vh, 560px);min-height:300px;
+    display:flex;align-items:center;
+    padding:0 20px;overflow:hidden;
+    background:
+      radial-gradient(60% 80% at 85% 20%, color-mix(in srgb, var(--accent-grad-b) 22%, transparent), transparent 70%),
+      radial-gradient(50% 70% at 10% 90%, color-mix(in srgb, var(--accent-grad-a) 18%, transparent), transparent 70%),
+      var(--accent-soft);
+  }
+  .hero-inner{
+    max-width:1080px;margin:0 auto;width:100%;
+    transform:translateY(calc(var(--p) * -60px)) scale(calc(1 - var(--p) * .06));
+    opacity:calc(1 - var(--p) * 1.1);
+    transform-origin:left center;
+    will-change:transform, opacity;
+  }
+  .eyebrow{
+    display:inline-block;margin-bottom:14px;
+    font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--accent-strong);
+  }
+  .hero h1{
+    font-size:clamp(36px, 6.2vw, 68px);font-weight:800;line-height:1.02;
+    letter-spacing:-.02em;margin:0 0 14px;
+  }
+  .hero p{margin:0;max-width:520px;color:var(--ink-soft);font-size:16px;line-height:1.5;}
+  .scroll-hint{
+    margin-top:28px;display:inline-flex;align-items:center;gap:8px;
+    background:none;border:0;padding:0;cursor:pointer;
+    font:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);
+  }
+  .scroll-hint:hover{color:var(--accent-strong);}
+  .scroll-hint .arrow{display:inline-block;animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+
+  .sheet{
+    position:relative;z-index:2;
+    background:var(--bg);
+    border-top:1px solid var(--line);
+    border-radius:26px 26px 0 0;
+    box-shadow:0 -18px 40px -30px rgba(0,0,0,.28);
+    min-height:calc(100% - 60px);
+    padding:40px 20px 80px;
+  }
+  .home-wrap{max-width:1080px;margin:0 auto;}
+  .section-label{
+    margin:0 0 20px;font-size:12px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-faint);
+  }
+
+  /* Pop-in as things scroll into view */
+  .reveal{
+    opacity:0;transform:translateY(56px) scale(.97);
+    transition:opacity .7s ease, transform .8s cubic-bezier(.16,.84,.24,1);
+    transition-delay:var(--d, 0ms);
+  }
+  .reveal.in{opacity:1;transform:none;}
+
+  .tiles{display:grid;grid-template-columns:repeat(3, 1fr);gap:22px;}
+  .tile{
+    position:relative; display:block;
+    text-decoration:none; color:var(--ink);
+    background:var(--panel);
+    border:1px solid var(--line); border-radius:14px;
+    overflow:hidden;
+    transform:translateZ(0) scale(1);
+    transition:transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, border-color .2s ease;
+  }
+  .tile:hover,.tile:focus-visible{
+    transform:scale(1.04);
+    box-shadow:var(--shadow);
+    border-color:var(--accent);
+    z-index:1;
+  }
+
+  /* Live, scaled-down snapshot of the tool */
+  .preview{position:relative;aspect-ratio:4 / 3;overflow:hidden;background:var(--bg);}
+  .preview iframe{
+    position:absolute;top:0;left:0;
+    width:1280px;height:960px;border:0;
+    transform-origin:0 0;
+    transform:scale(var(--s, .27));
+    pointer-events:none;
+    filter:saturate(.35);
+    transition:filter .3s ease;
+  }
+  .tile:hover .preview iframe,.tile:focus-visible .preview iframe{filter:none;}
+
+  /* Frosted glass over the snapshot */
+  .glass{
+    position:absolute;inset:0;
+    background:var(--glass);
+    backdrop-filter:blur(7px) saturate(.8);
+    -webkit-backdrop-filter:blur(7px) saturate(.8);
+    box-shadow:inset 0 1px 0 var(--glass-edge);
+    display:flex;align-items:center;justify-content:center;
+    transition:background .3s ease, backdrop-filter .3s ease, -webkit-backdrop-filter .3s ease, opacity .3s ease;
+  }
+  .glass span{
+    font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-soft);
+    transition:opacity .2s ease;
+  }
+  .tile:hover .glass,.tile:focus-visible .glass{
+    background:transparent;
+    backdrop-filter:blur(0) saturate(1);
+    -webkit-backdrop-filter:blur(0) saturate(1);
+  }
+  .tile:hover .glass span,.tile:focus-visible .glass span{opacity:0;}
+
+  .tile-body{
+    padding:14px 16px 16px;
+    border-top:1px solid var(--line);
+    transition:background .28s ease;
+  }
+  .tile-body h2{
+    margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--ink-soft);transition:color .2s ease;
+  }
+  .tile-body p{margin:0;font-size:13px;line-height:1.45;color:var(--ink-soft);}
+  .tile-body .go{
+    display:inline-block;margin-top:10px;font-size:13px;font-weight:600;
+    color:var(--ink-faint);transition:color .2s ease, transform .2s ease;
+  }
+  .tile:hover .tile-body,.tile:focus-visible .tile-body{background:var(--accent-soft);}
+  .tile:hover .tile-body h2,.tile:focus-visible .tile-body h2{color:var(--accent-strong);}
+  .tile:hover .go,.tile:focus-visible .go{color:var(--accent-strong);transform:translateX(3px);}
+
+  /* ---------- Tool view ---------- */
+  .tool-frame{
+    position:absolute;inset:0;width:100%;height:100%;border:0;
+    display:none;background:var(--bg);
+  }
+  .tool-frame.active{display:block;}
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    .hero-inner{transform:none !important;opacity:1 !important;}
+    .scroll-hint .arrow{animation:none;}
+    .tile,.tile *{transition:none !important;}
+    .tile:hover,.tile:focus-visible{transform:none;}
+  }
+  @media (max-width:900px){
+    .tiles{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:760px){
+    /* Home + brand share the top row, tool tabs drop below */
+    .hub-inner{grid-template-columns:auto 1fr;}
+    .center{grid-column:1 / -1;grid-row:2;justify-self:center;max-width:100%;}
+    .newtab{display:none;}
+    .inbox-btn span:not(.inbox-count){display:none;}
+    .tab-group{display:none;}
+    nav{grid-template-columns:repeat(3, auto);}
+    nav a{grid-row:auto;}
+    nav a:nth-of-type(4){margin-left:0;}
+    nav a:nth-of-type(4)::before{display:none;}
+  }
+  @media (max-width:640px){
+    .tiles{grid-template-columns:1fr;}
+    .hero{height:52vh;}
+    .sheet{border-radius:20px 20px 0 0;padding-top:28px;}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="brandbar"></div>
-  <header>
-    <div class="title">
-      <h1>Scan &amp; Print</h1>
-      <p>Scan one or more packing slip QRs (or type delivery numbers), then click Open docs.</p>
+<div class="topbar"></div>
+<div class="hub">
+  <div class="hub-inner">
+    <div class="left">
+      <a class="home-btn" id="homeBtn" href="#" aria-label="Home" title="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>
+        </svg>
+      </a>
     </div>
+    <nav class="center" id="tabs" aria-label="Tools"></nav>
     <div class="right">
-      <img class="logo" src="data:image/png;base64,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" alt="Twist Bioscience">
-      <button class="toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
-        <span class="track"><span class="knob" id="knob">☀︎</span></span>
+      <a class="inbox-btn" id="inboxBtn" href="#requests" hidden title="Shipping label requests">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13h4l2 3h4l2-3h4"/><path d="M4 13 6.5 5h11L20 13v6H4z"/></svg>
+        <span>Label requests</span><span class="inbox-count" id="inboxCount" hidden></span>
+      </a>
+      <a class="newtab" id="newtab" target="_blank" rel="noopener" hidden>Open in new tab ↗</a>
+      <a class="brand" href="#" aria-label="Twist Bioscience — Home">
+        <span class="brand-word">T W I S T</span>
+        <span class="brand-dot">·</span>
+        <span class="brand-sub">BIOSCIENCE</span>
+      </a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light or dark mode">
+        <span class="knob" id="themeIcon">☀</span>
       </button>
     </div>
-  </header>
-
-  <div class="card">
-    <h2>Scan</h2>
-    <label class="lbl" for="delivery">Delivery number</label>
-    <div class="scan">
-      <input id="delivery" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="80542131">
-      <button class="btn primary" id="openBtn" type="button">Open docs</button>
-    </div>
-    <div class="docs">
-      <label><input type="checkbox" id="doc-gts" checked> GTS invoice</label>
-      <label><input type="checkbox" id="doc-pack" checked> Packing slip</label>
-      <label><input type="checkbox" id="doc-pick"> Pick list</label>
-      <label><input type="checkbox" id="doc-dash"> Shipping dashboard</label>
-    </div>
-    <div class="docs auto">
-      <label><input type="checkbox" id="autoOpen"> Open docs automatically when scanned</label>
-    </div>
-    <p id="status" role="status" aria-live="polite"></p>
-    <div class="queue" id="queue" hidden>
-      <div class="queue-head"><span id="queueCount"></span><button class="linkbtn" id="queueClear" type="button">Clear</button></div>
-      <div id="queueList" aria-live="polite"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <h2>Recent</h2>
-      <details class="tally-week">
-        <summary id="tallyTop" title="Orders whose documents were opened today on this computer (each counted once). Click for the last 7 days."></summary>
-        <div class="tally-pop">
-          <table class="tally">
-            <thead><tr><th>Day</th><th class="n">Orders</th><th class="n amth2" hidden>Est. USD</th></tr></thead>
-            <tbody id="tallyBody"></tbody>
-          </table>
-        </div>
-      </details>
-      <button class="linkbtn" id="clearBtn" type="button">Clear list</button>
-    </div>
-    <table>
-      <thead><tr><th>Delivery #</th><th class="amth" hidden>Est. Amt. USD</th><th>Time</th><th style="text-align:right">Reopen</th></tr></thead>
-      <tbody id="recent"></tbody>
-    </table>
   </div>
 </div>
 
+<main id="frames">
+  <section id="home">
+    <header class="hero" id="hero">
+      <div class="hero-inner">
+        <span class="eyebrow">Twist Bioscience · Shipping</span>
+        <h1>Order Fulfillment<br>Tools</h1>
+        <p>Pick a tool to get started. Your work in each one stays put while you switch between them.</p>
+        <button class="scroll-hint" id="scrollHint" type="button">Browse tools <span class="arrow">↓</span></button>
+      </div>
+    </header>
+    <div class="sheet">
+      <div class="home-wrap">
+        <h2 class="section-label reveal">All tools</h2>
+        <div class="tiles" id="tiles"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
 <script>
-  const ECP = "https://vhtweecpci.sap.twistbioscience.com:44300/sap/opu/odata/sap/zotc_delivery_pdf_srv/PDFDocumentCollection";
-  const GTS = "https://sapgtsprd.twistbioscience.com:44300/sap/bc/gui/sap/its/webgui";
-  const ECP_GUI = "https://vhtweecpci.sap.twistbioscience.com:44300/sap/bc/gui/sap/its/webgui";
-  // Selection-screen field for the delivery number. Leave "" to open the dashboard's selection screen;
-  // set it (e.g. "S_VBELN-LOW") to jump straight to the delivery.
-  const DASH_FIELD = "";
-  const DOCS = {
-    gts:  { name: "GTS invoice",  url: d => `${GTS}?~transaction=*zsd_comminv%20P_VBELN=${d};&~nosplash=1&sap-client=500&sap-language=EN` },
-    pack: { name: "Packing slip", url: d => `${ECP}(DocID='${d}',DocType='Pack')/$value` },
-    pick: { name: "Pick list",    url: d => `${ECP}(DocID='${d}',DocType='Pick')/$value` },
-    dash: { name: "Shipping dashboard", url: d => `${ECP_GUI}?~transaction=${DASH_FIELD ? `*ZSD_SHIPDASH%20${DASH_FIELD}=${d};` : "ZSD_SHIPDASH"}&~nosplash=1&sap-client=500&sap-language=EN` }
+  // Label Requests web app URL (Apps Script: Deploy > Manage deployments > Web app URL).
+  // While it's blank, the Label Requests tool stays hidden.
+  const LABEL_REQUESTS_URL = "https://script.google.com/a/macros/twistbioscience.com/s/AKfycbwac30bm-NgrnyY2MJzJY3UOvi735Vp8nN6-lz_ChbXKywTrDIXXgu7rS5rW4UFw1ZHDA/exec";
+
+  // Add, rename or reorder tools here. "group" sets which labeled row of tabs a tool sits in.
+  // themeByUrl: the tool lives on another site, so the hub passes light/dark in its address instead.
+  const TOOLS = [
+    { id: "packing", name: "Packing Slips",  url: "https://nwonggg.github.io/-packing-slip-generator-/",
+      group: "Documents",
+      blurb: "Enter shipment details once, split items across boxes, and download a PDF slip for each box." },
+    { id: "adc-coo", name: "ADC & COO",      url: "https://nwonggg.github.io/adc-coo-ci/",
+      group: "Documents",
+      blurb: "Pick list in, ADC Excel out. Packing slips in, Certificate of Origin out." },
+    { id: "hts",     name: "HTS Calculator", url: "https://nwonggg.github.io/HTS-Calculator/",
+      group: "Documents",
+      blurb: "Upload commercial invoices, match line items to HS codes, and get totals per code." },
+    { id: "docs",    name: "Scan & Print",   url: "./scan-and-print.html",
+      group: "Daily ops",
+      blurb: "Scan a packing slip QR to open its GTS invoice and packing slip in SAP." },
+    { id: "pickup",  name: "Internal Pick Up", url: "./internal-pickup.html",
+      group: "Daily ops",
+      blurb: "Scan an internal order to write its pick-up email: contact, storage and time filled in, ready in Gmail." },
+    { id: "requests", name: "Label Requests", url: LABEL_REQUESTS_URL, themeByUrl: true,
+      inbox: true,   // opened from the inbox button in the header, not a tab
+      blurb: "Live view of internal shipping label requests: what's open, needs attention and shipped." }
+  ].filter(t => t.url);
+
+  // Address for a tool's frame: tools on other sites get the hub's theme and embed mode in the URL.
+  function frameUrl(t){
+    if (!t.themeByUrl) return t.url;
+    return t.url + (t.url.includes("?") ? "&" : "?") + "embed=1&theme=" + theme;
+  }
+
+  const tabs = document.getElementById("tabs");
+  const homeBtn = document.getElementById("homeBtn");
+  const frames = document.getElementById("frames");
+  const home = document.getElementById("home");
+  const tiles = document.getElementById("tiles");
+  const newtab = document.getElementById("newtab");
+  const themeToggle = document.getElementById("themeToggle");
+  const themeIcon = document.getElementById("themeIcon");
+  const toolFrames = {};
+  const previewFrames = [];
+  let theme = "light";
+
+  // ---------- Hide each tool's own header bits inside the hub ----------
+  // The hub's banner already has the green bar, TWIST wordmark and toggle, so the
+  // tools' copies are hidden here. Opened on their own links, the tools still show them.
+  const EMBED_CSS = [
+    "#themeToggle",                    // every tool's own light/dark toggle
+    "body > .topbar:empty",            // ADC (and restyled packing slip): green bar
+    ".brand:not(:has(h1))",            // ADC (and restyled packing slip): wordmark
+    ".brandbar", ".logo",              // current packing slip and Scan & Print: green bar and logo
+    ".top-stripe", ".brand-right"      // HTS Calculator: green bar, wordmark and toggle
+  ].join(",") + "{display:none !important;}";
+  // ---------- One type scale for every tool inside the hub ----------
+  // The tools were built separately, so titles, labels and buttons came out in different
+  // sizes. Inside the hub they all get the same sizes (the Packing Slips / Scan & Print scale).
+  const TYPE_CSS = `
+    body{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif !important;}
+    h1{font-size:22px !important;font-weight:700 !important;letter-spacing:-0.1px !important;line-height:1.25 !important;}
+    h1 + p, h1 + .sub, .brand .sub, header .title p{font-size:14px !important;}
+    .card h2, .eyebrow, .section-label, details.settings summary{
+      font-size:13px !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase;}
+    .btn:not(.small):not(.iconbtn), .btn-primary, .btn-secondary, .btn-danger, .btn-submit, .addrow-btn{font-size:14px !important;font-weight:600 !important;}
+    label:not(:has(input[type=checkbox])):not(:has(input[type=radio])){font-size:12.5px !important;}
+    input[type=text]:not(#delivery), input[type=date], input[type=number], input:not([type]):not(#delivery),
+    textarea, select{font-size:14px !important;}
+    table input, table select{font-size:13px !important;}
+    th{font-size:11px !important;}
+  `;
+
+  // Line the page titles up at the same height in every tool (the other tools sit 32px down).
+  const SPACING_CSS = {
+    "adc-coo": `.wrap{padding-top:32px !important;}`,
+    "hts":     `.page{padding-top:32px !important;}`
   };
+  const TITLE_GAP_CSS = `h1{margin-top:0 !important;margin-bottom:4px !important;}`;
 
-  const $ = id => document.getElementById(id);
-  const input = $("delivery"), status = $("status"), recentEl = $("recent");
-  const store = {
-    get(k, f){ try{ const v = localStorage.getItem(k); return v === null ? f : JSON.parse(v); } catch { return f; } },
-    set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); } catch {} }
-  };
-
-  function applyTheme(t){
-    document.documentElement.dataset.theme = t;
-    $("knob").textContent = t === "dark" ? "☾" : "☀︎";
-    $("themeToggle").setAttribute("aria-pressed", t === "dark");
-  }
-  applyTheme(store.get("sd-theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
-  $("themeToggle").onclick = () => {
-    const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    applyTheme(t); store.set("sd-theme", t); input.focus();
-  };
-
-  const saved = store.get("sd-docs", null);
-  for (const k of Object.keys(DOCS)){
-    const box = $("doc-" + k);
-    if (saved && k in saved) box.checked = saved[k];
-    box.onchange = () => {
-      store.set("sd-docs", Object.fromEntries(Object.keys(DOCS).map(x => [x, $("doc-" + x).checked])));
-      input.focus();
-    };
-  }
-
-  function normalize(raw){
-    const digits = String(raw).replace(/\D/g, "").replace(/^0+/, "");
-    if (!digits || digits.length > 10) return null;
-    return digits.padStart(10, "0");
-  }
-  function show(msg, warn){ status.textContent = msg; status.className = warn ? "warn" : ""; }
-
-  // ---- Batch: scanned deliveries waiting for "Open docs" ----
-  let queue = store.get("sd-queue", []);
-  const saveQueue = () => { store.set("sd-queue", queue); renderQueue(); };
-
-  function run(){
-    const list = [...queue];
-    const typed = normalize(input.value);
-    if (input.value.trim() && !typed){ show("That isn't a delivery number. Scan the packing slip QR or type the 8 digits, like 80542131.", true); input.select(); return; }
-    if (typed){ const t = typed.replace(/^0+/, ""); if (!list.includes(t)) list.push(t); }
-    if (!list.length){ show("Scan a delivery first.", true); input.focus(); return; }
-    const keys = Object.keys(DOCS).filter(k => $("doc-" + k).checked);
-    if (!keys.length){ show("Tick at least one document.", true); return; }
-    let blocked = 0;
-    for (const num of list){
-      for (const k of keys){ if (!window.open(DOCS[k].url(normalize(num)), "_blank")) blocked++; }
+  // The current Packing Slips page has no dark mode of its own, so the hub supplies one.
+  // It only switches on when the hub sets data-theme="dark" on the tool's page.
+  const D = 'html[data-theme="dark"]';
+  const PACKING_DARK_CSS = `
+    ${D}{
+      --teal:#2ad39b; --teal-dark:#2ad39b; --ink:#e0e5eb; --ink-soft:#98a8b3;
+      --paper:#1a232a; --mist:#0f0f10; --line:#354652; --gray-head:#2a3841;
+      color-scheme:dark;
     }
-    if (blocked) show(`Chrome blocked ${blocked} tab${blocked > 1 ? "s" : ""}. Click the blocked pop-up icon in the address bar, choose "Always allow", then click Open docs again.`, true);
-    else show(`Opened ${keys.map(k => DOCS[k].name).join(" and ")} for ${list.length === 1 ? list[0] : list.length + " deliveries"}.`);
-    if (!blocked){
-      for (const num of list){ addRecent(num); recordTally(num); }
-      queue = []; saveQueue();
-    }
-    input.value = "";
-    input.focus();
-  }
-
-  // ---- Est. Amt. USD from the Shipping Dashboard ----
-  // Filled in by the "Scan & Print: dashboard amounts" Tampermonkey script, which reads
-  // ZSD_SHIPDASH lists as they're viewed in SAP. Without the script, this stays off.
-  let orders = null;
-  function money(n){ return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  function orderFor(num){ return orders && orders[String(num).replace(/^0+/, "")] || null; }
-  const esc = x => String(x == null ? "" : x).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
-  // Ask the open SAP dashboard tabs to refresh now when a scanned delivery has no amount.
-  const asked = {};
-  function askRefresh(num){
-    if (!orders || orderFor(num)) return;
-    asked[num] = Date.now();
-    window.postMessage({ type: "sd-refresh-request", num }, "*");
-    setTimeout(renderQueue, 25500);
-  }
-  function renderQueue(){
-    const box = $("queue"), listEl = $("queueList");
-    box.hidden = !queue.length;
-    $("queueCount").textContent = `Ready to open: ${queue.length} deliver${queue.length === 1 ? "y" : "ies"}`;
-    listEl.innerHTML = "";
-    for (const num of queue){
-      const o = orderFor(num);
-      const row = document.createElement("div");
-      row.className = "order" + (orders && !o && !(Date.now() - (asked[num] || 0) < 25000) ? " miss" : "");
-      row.innerHTML = `<span class="dnum">${esc(num)}</span>` + (
-        !orders ? "" :
-        !o && Date.now() - (asked[num] || 0) < 25000 ? `<span class="meta">Asking SAP to refresh for this one…</span>` :
-        !o ? `<span class="meta">No amount yet. It isn’t in your open Shipping Dashboard lists (check its stage and the date range).</span>` :
-        `<span class="amt">${money(o.amt)}<small>Est. USD</small></span>
-         ${o.ship ? `<span class="meta"><b>${esc(o.ship)}</b>${o.country ? " (" + esc(o.country) + ")" : ""}</span>` : ""}
-         ${o.q ? `<span class="meta">${esc(o.q)}</span>` : ""}`
-      ) + `<button class="rm" type="button" aria-label="Remove ${esc(num)}">Remove</button>`;
-      row.querySelector(".rm").onclick = () => { queue = queue.filter(x => x !== num); saveQueue(); input.focus(); };
-      listEl.appendChild(row);
-    }
-  }
-  $("queueClear").onclick = () => { queue = []; saveQueue(); show(""); input.focus(); };
-  window.addEventListener("message", e => {
-    if (e.source !== window || !e.data || e.data.type !== "sd-orders-data") return;
-    orders = e.data.rows || {};
-    document.querySelector(".amth").hidden = false;
-    renderRecent(); renderQueue(); renderTally();
-  });
-  window.postMessage({ type: "sd-orders-request" }, "*");
-
-  // ---- Daily tally: deliveries whose documents were opened, once per day ----
-  const dayKey = d => { const x = new Date(d); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); };
-  let tally = store.get("sd-tally", null);
-  if (!tally){   // first run: start from what's already in Recent
-    tally = {};
-    for (const r of store.get("sd-recent", [])){ const k = dayKey(r.at); (tally[k] = tally[k] || []).includes(r.num) || tally[k].push(r.num); }
-    store.set("sd-tally", tally);
-  }
-  document.addEventListener("click", e => { const d = document.querySelector(".tally-week"); if (d.open && !d.contains(e.target)) d.open = false; });
-  function recordTally(num){
-    const k = dayKey(Date.now());
-    tally[k] = tally[k] || [];
-    if (!tally[k].includes(num)) tally[k].push(num);
-    const keys = Object.keys(tally).sort();
-    while (keys.length > 120) delete tally[keys.shift()];
-    store.set("sd-tally", tally);
-    renderTally();
-  }
-  function dayValue(nums){
-    let sum = 0, missing = 0;
-    for (const n of nums){ const o = orderFor(n); if (o) sum += o.amt; else missing++; }
-    return { sum, missing };
-  }
-  function renderTally(){
-    const today = dayKey(Date.now());
-    const t = tally[today] || [];
-    const v = dayValue(t);
-    $("tallyTop").innerHTML = `Today: <b>${t.length}</b> order${t.length === 1 ? "" : "s"}` + (orders && t.length ? ` · <b>${money(v.sum)}</b>` : "") + " ▾";
-    document.querySelector(".amth2").hidden = !orders;
-    const body = $("tallyBody"); body.innerHTML = "";
-    for (let i = 0; i < 7; i++){
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const k = dayKey(d), nums = tally[k] || [];
-      const tr = document.createElement("tr");
-      const label = i === 0 ? "Today" : i === 1 ? "Yesterday" : d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
-      const dv = dayValue(nums);
-      tr.innerHTML = `<td>${label}</td><td class="n">${nums.length}</td>` + (orders ? `<td class="n">${nums.length ? money(dv.sum) : "–"}</td>` : "");
-      body.appendChild(tr);
-    }
-  }
-
-  function addRecent(num){
-    const list = store.get("sd-recent", []).filter(r => r.num !== num);
-    list.unshift({ num, at: Date.now() });
-    store.set("sd-recent", list.slice(0, 15));
-    renderRecent();
-  }
-  function renderRecent(){
-    const list = store.get("sd-recent", []);
-    recentEl.innerHTML = "";
-    if (!list.length){ recentEl.innerHTML = `<tr><td colspan="${orders ? 4 : 3}" class="empty">Scanned deliveries show up here so you can reopen a document.</td></tr>`; return; }
-    for (const r of list){
-      const t = new Date(r.at);
-      const today = t.toDateString() === new Date().toDateString();
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td class="num">${r.num}</td>${orders ? `<td class="amtc">${orderFor(r.num) ? money(orderFor(r.num).amt) : "–"}</td>` : ""}<td class="time">${today ? t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : t.toLocaleDateString([], {month:"short", day:"numeric"})}</td><td class="acts"></td>`;
-      for (const k of Object.keys(DOCS)){
-        const b = document.createElement("button");
-        b.className = "btn small"; b.type = "button"; b.textContent = DOCS[k].name;
-        b.onclick = () => { window.open(DOCS[k].url(normalize(r.num)), "_blank"); input.focus(); };
-        tr.lastChild.appendChild(b);
+    ${D} body{background:var(--mist);color:var(--ink);}
+    ${D} header .title p, ${D} label, ${D} .hint{color:var(--ink-soft);}
+    ${D} input[type=text], ${D} input[type=date], ${D} input[type=number],
+    ${D} textarea, ${D} select{background:#131b20;color:var(--ink);border-color:var(--line);}
+    ${D} ::placeholder{color:#6d7d88;}
+    ${D} .box-card{background:#151d23;}
+    ${D} table.items th{color:#c9d3da;}
+    ${D} table.items input{background:transparent;border-color:transparent;}
+    ${D} table.items input:focus{border-color:var(--teal);}
+    ${D} table.items td.drag-handle{color:#6d7d88;}
+    ${D} .btn{background:#1a232a;color:var(--ink);border-color:var(--line);}
+    ${D} .btn:hover{border-color:var(--teal);color:var(--teal);}
+    ${D} .btn.primary{background:#19805e;border-color:#19805e;color:#fff;}
+    ${D} .btn.primary:hover{background:#04a973;border-color:#04a973;color:#fff;}
+    ${D} .btn.danger, ${D} .rm-row, ${D} .box-card-head .rm-box{color:#f07a73;}
+    ${D} .btn.danger{border-color:#5a3433;}
+    ${D} .btn.danger:hover{background:#b3312c;border-color:#b3312c;color:#fff;}
+    ${D} .box-card.drag-target{box-shadow:0 0 0 2px rgba(42,211,155,.25);}
+  `;
+  function hideToolChrome(frame, toolId){
+    try{
+      const d = frame.contentWindow.document;
+      if (d && d.head && !d.getElementById("hub-embed-style")){
+        const st = d.createElement("style");
+        st.id = "hub-embed-style";
+        // Only add the dark theme to the current packing slip page (it has no
+        // #themeToggle). The restyled version brings its own dark mode.
+        const needsDark = toolId === "packing" && !d.getElementById("themeToggle");
+        st.textContent = EMBED_CSS + TYPE_CSS + TITLE_GAP_CSS + (SPACING_CSS[toolId] || "") + (needsDark ? PACKING_DARK_CSS : "");
+        d.head.appendChild(st);
       }
-      recentEl.appendChild(tr);
-    }
+    }catch(e){}
   }
-  $("clearBtn").onclick = () => { store.set("sd-recent", []); renderRecent(); input.focus(); };
 
-  // Scanning (or pressing Enter) only looks the delivery up; documents open when "Open docs" is clicked.
-  function preview(){
-    const d = normalize(input.value);
-    if (!d){ show("That isn't a delivery number. Scan the packing slip QR or type the 8 digits, like 80542131.", true); input.select(); return; }
-    const short = d.replace(/^0+/, "");
-    if (queue.includes(short)) show(`${short} is already in the list.`);
-    else { queue.push(short); askRefresh(short); saveQueue(); show(`Added ${short}. Scan the next one, or click Open docs.`); }
-    input.value = "";
-    input.focus();
+  // ---------- Hub-only tweaks to the Packing Slips tool ----------
+  // Applied only when the tool is opened inside this hub; its own link is untouched.
+  // Starts with no boxes (Clear All also resets to none) and uses a new contact example.
+  function customizePacking(frame){
+    try{
+      const w = frame.contentWindow, d = w.document;
+      if (!d || w.__hubPacking) return;
+      const container = d.getElementById("boxesContainer");
+      const addBtn = d.getElementById("addBoxBtn");
+      if (!container || typeof w.addBox !== "function" || typeof w.renumberBoxes !== "function") return;
+      w.__hubPacking = true;
+
+      const contact = d.getElementById("contact");
+      if (contact) contact.placeholder = "e.g. Jun Bai Zhen";
+
+      // "No boxes yet" note above the box list
+      const note = d.createElement("p");
+      note.textContent = "No boxes yet. Add a box or use Import from PDF.";
+      note.style.cssText = "margin:0 0 14px;font-size:14px;color:var(--ink-soft, #5b6763);";
+      container.parentNode.insertBefore(note, container);
+
+      // Keep the note, button label and Total Boxes in sync
+      const origRenumber = w.renumberBoxes;
+      w.renumberBoxes = function(){
+        origRenumber.apply(this, arguments);
+        const n = container.querySelectorAll(".box-card").length;
+        note.style.display = n ? "none" : "";
+        if (addBtn) addBtn.textContent = n ? "+ Add Another Box" : "+ Add Box";
+      };
+
+      // Clear All normally adds one empty box back; skip that inside the hub
+      let clearing = false;
+      const origAddBox = w.addBox;
+      w.addBox = function(prefill){
+        if (clearing && !prefill){ clearing = false; w.renumberBoxes(); return; }
+        return origAddBox.apply(this, arguments);
+      };
+      d.addEventListener("click", e => { if (e.target.closest && e.target.closest("#clearAllBtn")) clearing = true; }, true);
+      d.addEventListener("click", () => { clearing = false; });
+
+      // Start empty, unless someone already put items in
+      const hasItems = [...container.querySelectorAll(".i-part, .i-desc, .i-qty")].some(el => el.value.trim());
+      if (!hasItems){ container.innerHTML = ""; w.boxCounter = 0; }
+      w.renumberBoxes();
+    }catch(e){}
   }
-  const auto = $("autoOpen");
-  auto.checked = store.get("sd-autoopen", false);
-  auto.onchange = () => { store.set("sd-autoopen", auto.checked); input.focus(); };
-  input.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); auto.checked ? run() : preview(); } });
-  $("openBtn").onclick = run;
-  renderRecent();
-  renderQueue();
-  renderTally();
-  // Lets the tools hub switch this page's theme
-  window.setTheme = t => applyTheme(t === "dark" ? "dark" : "light");
-  // Inside the hub, the hub decides when to focus the box (so previews don't steal focus)
-  if (window.top === window.self) input.focus();
+
+  // ---------- Theme (also flips every embedded tool that supports it) ----------
+  function applyThemeTo(frame){
+    const t = TOOLS.find(x => x.id === frame.dataset.id);
+    if (t && t.themeByUrl){
+      const want = frameUrl(t);
+      if (frame.dataset.loaded !== want){ frame.dataset.loaded = want; frame.src = want; } // reload in the new theme
+      return;
+    }
+    try{
+      const w = frame.contentWindow;
+      if (typeof w.setTheme === "function") w.setTheme(theme);
+      else if (w.document) w.document.documentElement.setAttribute("data-theme", theme);
+    }catch(e){}
+  }
+  function allFrames(){ return [...Object.values(toolFrames), ...previewFrames]; }
+  function setTheme(mode){
+    theme = mode === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+    themeIcon.textContent = theme === "dark" ? "☾" : "☀";
+    themeToggle.classList.toggle("on", theme === "dark");
+    allFrames().forEach(applyThemeTo);
+  }
+  themeToggle.addEventListener("click", () => setTheme(theme === "dark" ? "light" : "dark"));
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  setTheme(prefersDark ? "dark" : "light");
+
+  // ---------- Tool tabs (center): one labeled row per group ----------
+  const TAB_TOOLS = TOOLS.filter(t => !t.inbox);
+  const groupNames = [...new Set(TAB_TOOLS.map(t => t.group || "Tools"))];
+  tabs.style.gridTemplateColumns = `repeat(${TAB_TOOLS.length}, auto)`;
+  let col = 1;
+  groupNames.forEach(g => {
+    const members = TAB_TOOLS.filter(t => (t.group || "Tools") === g);
+    const lab = document.createElement("span");
+    lab.className = "tab-group";
+    lab.textContent = g;
+    lab.style.gridColumn = `${col} / ${col + members.length}`;
+    tabs.appendChild(lab);
+    members.forEach(t => {
+      const a = document.createElement("a");
+      a.href = "#" + t.id;
+      a.textContent = t.name;
+      a.dataset.id = t.id;
+      tabs.appendChild(a);
+    });
+    col += members.length;
+  });
+
+  // ---------- Label requests inbox button (header) ----------
+  // Shows open requests and turns red when any need attention. The Label Requests app
+  // reports its numbers with postMessage({ type: "label-requests-summary", open, attention }).
+  const inboxBtn = document.getElementById("inboxBtn");
+  const inboxCount = document.getElementById("inboxCount");
+  const inboxTool = TOOLS.find(t => t.inbox);
+  if (inboxTool){
+    inboxBtn.hidden = false;
+    inboxBtn.href = "#" + inboxTool.id;
+    window.addEventListener("message", e => {
+      const m = e.data;
+      if (!m || m.type !== "label-requests-summary") return;
+      if (!/^https:\/\/([a-z0-9-]+\.)*(google\.com|googleusercontent\.com)$/.test(e.origin)) return;
+      const open = Number(m.open) || 0, attention = Number(m.attention) || 0;
+      inboxCount.hidden = !(open || attention);
+      inboxCount.textContent = attention || open;
+      inboxBtn.classList.toggle("alert", attention > 0);
+      inboxBtn.title = `${open} open label request${open === 1 ? "" : "s"}` + (attention ? `, ${attention} need${attention === 1 ? "s" : ""} attention` : "");
+    });
+  }
+
+  // ---------- Home tiles with live previews ----------
+  TOOLS.forEach((t, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "reveal";
+    wrap.style.setProperty("--d", (i * 110) + "ms");
+    const a = document.createElement("a");
+    a.className = "tile";
+    a.href = "#" + t.id;
+    a.innerHTML = `
+      <div class="preview">
+        <iframe tabindex="-1" aria-hidden="true" loading="lazy"></iframe>
+        <div class="glass"><span>${t.name}</span></div>
+      </div>
+      <div class="tile-body">
+        <h2>${t.name}</h2>
+        <p>${t.blurb}</p>
+        <span class="go">Open →</span>
+      </div>`;
+    const f = a.querySelector("iframe");
+    f.dataset.id = t.id;
+    f.src = f.dataset.loaded = frameUrl(t);
+    f.addEventListener("load", () => { hideToolChrome(f, t.id); if (t.id === "packing") customizePacking(f); applyThemeTo(f); });
+    previewFrames.push(f);
+    wrap.appendChild(a);
+    tiles.appendChild(wrap);
+  });
+
+  // ---------- Scroll effects on the home screen ----------
+  const hero = document.getElementById("hero");
+  let ticking = false;
+  home.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const p = Math.min(1, home.scrollTop / (hero.offsetHeight * 0.9));
+      hero.style.setProperty("--p", p.toFixed(3));
+      ticking = false;
+    });
+  }, { passive: true });
+
+  document.getElementById("scrollHint").addEventListener("click", () => {
+    home.scrollTo({ top: hero.offsetHeight - 40, behavior: "smooth" });
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, { root: home, threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+  // Scale each 1280px-wide preview to fit its tile.
+  const ro = new ResizeObserver(entries => {
+    entries.forEach(e => e.target.style.setProperty("--s", e.contentRect.width / 1280));
+  });
+  document.querySelectorAll(".preview").forEach(p => ro.observe(p));
+
+  // ---------- Routing ----------
+  function show(id){
+    const tool = TOOLS.find(t => t.id === id);
+
+    tabs.querySelectorAll("a").forEach(a => {
+      if (tool && a.dataset.id === tool.id) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    });
+    if (tool && tool.inbox) inboxBtn.setAttribute("aria-current", "page"); else inboxBtn.removeAttribute("aria-current");
+    if (tool) homeBtn.removeAttribute("aria-current");
+    else homeBtn.setAttribute("aria-current", "page");
+
+    if (!tool){
+      home.hidden = false;
+      Object.values(toolFrames).forEach(f => f.classList.remove("active"));
+      newtab.hidden = true;
+      document.title = "Order Fulfillment Tools — Twist Bioscience";
+      return;
+    }
+
+    ensureFrame(tool);
+    home.hidden = true;
+    Object.values(toolFrames).forEach(f => f.classList.toggle("active", f.dataset.id === tool.id));
+    newtab.hidden = false;
+    newtab.href = tool.url;
+    document.title = tool.name + " — Twist Bioscience";
+
+    // Scan & Print: put the cursor in the scan box so the scanner works right away
+    const active = toolFrames[tool.id];
+    const focusScan = () => {
+      try{
+        const el = active.contentWindow.document.getElementById("delivery");
+        if (el){ active.contentWindow.focus(); el.focus(); }
+      }catch(e){}
+    };
+    focusScan();
+    active.addEventListener("load", focusScan, { once: true });
+  }
+
+  // Each tool loads once and stays alive, so work in progress survives switching.
+  function ensureFrame(tool){
+    if (!toolFrames[tool.id]){
+      const f = document.createElement("iframe");
+      f.className = "tool-frame";
+      f.src = f.dataset.loaded = frameUrl(tool);
+      f.title = tool.name;
+      f.dataset.id = tool.id;
+      f.setAttribute("allow", "clipboard-read; clipboard-write");
+      f.addEventListener("load", () => { hideToolChrome(f, tool.id); if (tool.id === "packing") customizePacking(f); applyThemeTo(f); });
+      frames.appendChild(f);
+      toolFrames[tool.id] = f;
+    }
+    return toolFrames[tool.id];
+  }
+
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+  // Load Label Requests quietly in the background so the inbox count is ready.
+  if (inboxTool) setTimeout(() => ensureFrame(inboxTool), 1500);
 </script>
 </body>
 </html>
