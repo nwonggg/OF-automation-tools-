@@ -73,6 +73,7 @@
   .left{justify-self:start;}
   .right{justify-self:end;display:flex;align-items:center;gap:12px;}
 
+  .left{display:flex;align-items:center;gap:10px;}
   .home-btn{
     display:inline-flex;align-items:center;justify-content:center;
     width:36px;height:36px;padding:0;
@@ -124,6 +125,7 @@
   .inbox-btn svg{width:17px;height:17px;}
   .inbox-btn:hover{color:var(--ink);background:var(--line-soft);}
   .inbox-btn[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);border-color:transparent;}
+  .inbox-count[hidden]{display:none;}
   .inbox-count{min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
     font-size:11.5px;font-weight:700;background:var(--accent-soft);color:var(--accent-strong);font-variant-numeric:tabular-nums;}
   .inbox-btn.alert{border-color:#e3a5a0;color:#b3312c;background:#fbeceb;}
@@ -338,13 +340,13 @@
           <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>
         </svg>
       </a>
-    </div>
-    <nav class="center" id="tabs" aria-label="Tools"></nav>
-    <div class="right">
       <a class="inbox-btn" id="inboxBtn" href="#requests" hidden title="Shipping label requests">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13h4l2 3h4l2-3h4"/><path d="M4 13 6.5 5h11L20 13v6H4z"/></svg>
         <span>Label requests</span><span class="inbox-count" id="inboxCount" hidden></span>
       </a>
+    </div>
+    <nav class="center" id="tabs" aria-label="Tools"></nav>
+    <div class="right">
       <a class="newtab" id="newtab" target="_blank" rel="noopener" hidden>Open in new tab ↗</a>
       <a class="brand" href="#" aria-label="Twist Bioscience — Home">
         <span class="brand-word">T W I S T</span>
@@ -609,7 +611,7 @@
       if (!m || m.type !== "label-requests-summary") return;
       if (!/^https:\/\/([a-z0-9-]+\.)*(google\.com|googleusercontent\.com)$/.test(e.origin)) return;
       const open = Number(m.open) || 0, attention = Number(m.attention) || 0;
-      inboxCount.hidden = !(open || attention);
+      inboxCount.hidden = false;   // 0 shows too, so you can tell it is connected
       inboxCount.textContent = attention || open;
       inboxBtn.classList.toggle("alert", attention > 0);
       inboxBtn.title = `${open} open label request${open === 1 ? "" : "s"}` + (attention ? `, ${attention} need${attention === 1 ? "s" : ""} attention` : "");
